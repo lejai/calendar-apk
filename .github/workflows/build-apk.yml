@@ -10,11 +10,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: kivy/buildozer:latest
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install buildozer
 
     - name: Create minimal project
       run: |
@@ -22,18 +30,18 @@ jobs:
         echo "from kivy.app import App
 from kivy.uix.label import Label
 
-class CalendarApp(App):
+class TestApp(App):
     def build(self):
         return Label(text='Hello World')
 
 if __name__ == '__main__':
-    CalendarApp().run()" > main.py
+    TestApp().run()" > main.py
 
         # 创建 buildozer.spec
         echo "[app]
-title = 极简日历
-package.name = calendarapk
-package.domain = org.calendar
+title = TestApp
+package.name = testapp
+package.domain = org.test
 source.dir = .
 requirements = python3,kivy
 android.api = 33
@@ -49,15 +57,11 @@ warn_on_root = 1" > buildozer.spec
         # 设置环境变量
         export BUILDOZER_ALLOW_ROOT=1
         
-        # 显示当前目录和文件
-        pwd
-        ls -la
+        # 初始化 buildozer
+        buildozer init
         
-        # 开始构建
+        # 构建 APK
         buildozer android debug
-        
-        # 显示构建结果
-        ls -la bin/ || true
 
     - name: Copy build artifacts
       run: |
