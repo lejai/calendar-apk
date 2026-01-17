@@ -45,13 +45,13 @@ log_level = 2
 warn_on_root = 0
 EOF
     
-    - name: Build APK with Docker
+    - name: Build Docker image
       run: |
-        # Run buildozer in Docker container
-        docker run --rm -v $(pwd):/app -e BUILDOZER_ALLOW_ROOT=1 docker.io/kivy/buildozer:latest bash -c "
-            cd /app && 
-            echo 'y' | buildozer android debug
-        "
+        docker build -t calendar-apk-builder .
+    
+    - name: Run Docker container
+      run: |
+        docker run --rm -v $(pwd):/app calendar-apk-builder
     
     - name: List build results
       run: |
