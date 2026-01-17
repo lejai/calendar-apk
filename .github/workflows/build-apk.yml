@@ -16,7 +16,8 @@ jobs:
     - name: Create project files
       run: |
         # Create main.py
-        echo "from kivy.app import App
+        cat > main.py << 'EOF'
+from kivy.app import App
 from kivy.uix.label import Label
 
 class TestApp(App):
@@ -24,10 +25,12 @@ class TestApp(App):
         return Label(text='Hello World')
 
 if __name__ == '__main__':
-    TestApp().run()" > main.py
+    TestApp().run()
+EOF
         
         # Create buildozer.spec
-        echo "[app]
+        cat > buildozer.spec << 'EOF'
+[app]
 title = TestApp
 package.name = testapp
 package.domain = org.test
@@ -39,7 +42,8 @@ android.ndk = 25b
 android.arch = armeabi-v7a
 [buildozer]
 log_level = 2
-warn_on_root = 0" > buildozer.spec
+warn_on_root = 0
+EOF
     
     - name: Build APK with Docker
       run: |
