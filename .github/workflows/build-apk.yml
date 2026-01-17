@@ -47,7 +47,10 @@ jobs:
         sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
         sed -i 's/package.domain = org.test/package.domain = org.calendar/' buildozer.spec
-        sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivymd/' buildozer.spec
+        # 确保只添加一次 kivymd
+        if ! grep -q "kivymd" buildozer.spec; then
+            sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivymd/' buildozer.spec
+        fi
         sed -i 's/android.api = 31/android.api = 33/' buildozer.spec
         sed -i 's/android.ndk = 25b/android.ndk = 25b/' buildozer.spec
         sed -i 's/android.sdk = 24/android.sdk = 33/' buildozer.spec
