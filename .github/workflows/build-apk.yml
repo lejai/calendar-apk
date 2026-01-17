@@ -10,10 +10,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: docker.io/kivy/buildozer:latest
-      options: --user root
-
     steps:
     - uses: actions/checkout@v3
     
@@ -46,11 +42,10 @@ log_level = 2
 warn_on_root = 0" > buildozer.spec
     
     - name: Build APK
-      env:
-        BUILDOZER_ALLOW_ROOT: 1
-      run: |
-        # Run buildozer with auto-yes and verbose output
-        echo "y" | buildozer -v android debug
+      uses: ArtemSBulgakov/buildozer-action@v1
+      with:
+        command: android debug
+        buildozer_version: stable
     
     - name: List build results
       run: |
