@@ -40,15 +40,28 @@ jobs:
         RUN sed -i 's/android.sdk = 24/android.sdk = 33/' buildozer.spec
         RUN sed -i 's/android.permissions = /android.permissions = INTERNET/' buildozer.spec
         
+        # 安装必要的依赖
+        RUN apt-get update && apt-get install -y --no-install-recommends \
+            wget \
+            unzip \
+            && rm -rf /var/lib/apt/lists/*
+        
+        # 预先创建 Android SDK 许可证文件和目录结构
+        RUN mkdir -p /root/.buildozer/android/platform/android-sdk/licenses
+        RUN echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        RUN echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+        RUN echo -e "\nd975f751698327a46b6bb56c5f1b1370cffdc550" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-arm-dbt-license
+        
         # 创建 assets 目录
         RUN mkdir -p assets
         
-        # 构建 APK
-        RUN buildozer android debug
+        # 构建 APK（添加详细输出）
+        RUN buildozer android debug -v
         
         # 复制构建结果
         RUN mkdir -p /output
-        RUN cp bin/*.apk /output/
+        RUN cp bin/*.apk /output/ || echo "No APK files found"
+        RUN ls -la /output/
         EOF
         
         # 构建并运行 Docker 容器
