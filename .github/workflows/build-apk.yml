@@ -10,28 +10,37 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
-
-    - name: Create minimal project
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
       run: |
-        # 创建基本的项目文件
+        python -m pip install --upgrade pip
+        pip install buildozer cython
+    
+    - name: Create project files
+      run: |
+        # Create main.py
         echo "from kivy.app import App
 from kivy.uix.label import Label
 
-class CalendarApp(App):
+class TestApp(App):
     def build(self):
         return Label(text='Hello World')
 
 if __name__ == '__main__':
-    CalendarApp().run()" > main.py
-
-        # 创建 buildozer.spec
+    TestApp().run()" > main.py
+        
+        # Create buildozer.spec
         echo "[app]
-title = 极简日历
-package.name = calendarapk
-package.domain = org.calendar
+title = TestApp
+package.name = testapp
+package.domain = org.test
 source.dir = .
 requirements = python3,kivy
 android.api = 33
@@ -41,27 +50,18 @@ android.arch = armeabi-v7a
 [buildozer]
 log_level = 2
 warn_on_root = 0" > buildozer.spec
-
+    
     - name: Build APK
       run: |
-        # 运行 buildozer 容器，自动回答确认提示
-        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "
-            export BUILDOZER_ALLOW_ROOT=1 && 
-            echo y | buildozer android debug
-        "
-
-    - name: Copy build artifacts
-      run: |
-        mkdir -p output
-        cp -r bin/* output/ || true
-        ls -la output/
-        ls -la bin/ || true
-
+        # Set environment variables
+        export BUILDOZER_ALLOW_ROOT=1
+        
+        # Run buildozer with auto-yes
+        echo "y" | buildozer android debug
+    
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: build-artifacts
-        path: |
-          output/*.apk
-          buildozer.spec
+        name: apk
+        path: bin/*.apk
       if: always()
