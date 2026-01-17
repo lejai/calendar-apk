@@ -25,6 +25,12 @@ jobs:
         # 复制项目文件
         COPY . .
         
+        # 预先创建 Android SDK 许可证文件
+        RUN mkdir -p /root/.buildozer/android/platform/android-sdk/licenses
+        RUN echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        RUN echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+        RUN echo -e "\nd975f751698327a46b6bb56c5f1b1370cffdc550" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-arm-dbt-license
+        
         # 构建 APK
         RUN echo "y" | buildozer android debug
         
