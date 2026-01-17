@@ -57,3 +57,13 @@ jobs:
         mkdir -p assets
         # 首次运行会下载 SDK 和 NDK，可能需要较长时间
         buildozer android debug
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          bin/*.apk
+          .buildozer/android/platform/android-sdk*/logs
+          buildozer.spec
+      if: always()
