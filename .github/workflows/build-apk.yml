@@ -54,7 +54,7 @@ jobs:
         fi
         # 显示当前文件内容
         cat buildozer.spec
-        # 修改配置
+        # 修改配置（移除中文注释）
         sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
         sed -i 's/package.domain = org.test/package.domain = org.calendar/' buildozer.spec
@@ -67,11 +67,25 @@ jobs:
         echo "修改后的 buildozer.spec 文件内容："
         cat buildozer.spec
 
+    - name: Accept Android SDK licenses
+      run: |
+        # 设置环境变量以自动接受许可证
+        export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+        export ANDROID_SDK_ROOT=$ANDROID_HOME
+        # 创建许可证目录（如果不存在）
+        mkdir -p $ANDROID_HOME/licenses
+        # 创建许可证文件
+        echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_HOME/licenses/android-sdk-license
+        echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
+        echo "Android SDK licenses accepted"
+
     - name: Build APK
       run: |
         # 创建 assets 目录
         mkdir -p assets
-        # 首次运行会下载 SDK 和 NDK，可能需要较长时间
+        
+        # 构建 APK（首次运行会下载 SDK 和 NDK）
+        echo "Building APK..."
         buildozer android debug
 
     - name: Upload artifacts
