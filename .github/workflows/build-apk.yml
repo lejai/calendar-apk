@@ -33,11 +33,12 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential git python3 python3-pip openjdk-17-jdk unzip zip
+        sudo apt-get install -y build-essential git python3 python3-pip openjdk-17-jdk unzip zip wget curl
 
     - name: Install Python dependencies
       run: |
-        pip3 install buildozer cython
+        pip3 install --upgrade pip
+        pip3 install buildozer cython kivy kivymd
 
     - name: Debug buildozer
       run: |
@@ -45,6 +46,19 @@ jobs:
         buildozer --version
         echo "Buildozer init (dry run):"
         buildozer init --dry-run
+
+    - name: Create and configure buildozer.spec
+      run: |
+        if [ ! -f "buildozer.spec" ]; then buildozer init; fi
+        sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
+        sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
+        sed -i 's/package.domain = org.test/package.domain = org.calendar/' buildozer.spec
+        sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivymd/' buildozer.spec
+        sed -i 's/android.api = 31/android.api = 33/' buildozer.spec
+        sed -i 's/android.ndk = 25b/android.ndk = 25b/' buildozer.spec
+        sed -i 's/android.sdk = 24/android.sdk = 33/' buildozer.spec
+        sed -i 's/android.permissions = /android.permissions = INTERNET/' buildozer.spec
+        cat buildozer.spec
 
     - name: Build APK
       run: |
@@ -58,4 +72,5 @@ jobs:
         path: |
           bin/*.apk
           .buildozer/android/platform/android-sdk*/logs
+          buildozer.spec
       if: always()
