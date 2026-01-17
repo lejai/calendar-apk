@@ -80,10 +80,15 @@ jobs:
         # 重命名目录
         mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
         
+        # 创建旧的 tools/bin 目录结构并添加符号链接
+        mkdir -p $ANDROID_HOME/tools/bin
+        ln -s $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager $ANDROID_HOME/tools/bin/sdkmanager
+        ln -s $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager $ANDROID_HOME/tools/bin/avdmanager
+        
         # 设置环境变量
         export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_SDK_ROOT=$ANDROID_HOME
-        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin
         
         # 创建许可证目录并接受许可证
         mkdir -p $ANDROID_HOME/licenses
@@ -97,6 +102,8 @@ jobs:
         echo "Android SDK installed successfully"
         echo "sdkmanager path:"
         which sdkmanager
+        echo "Old sdkmanager path exists:"
+        ls -la $ANDROID_HOME/tools/bin/sdkmanager
         echo "Platform tools installed:"
         ls -la $ANDROID_HOME/platform-tools/
 
