@@ -19,30 +19,43 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install dependencies
+    - name: Debug environment
+      run: |
+        echo "Python version:"
+        python3 --version
+        echo "pip version:"
+        pip3 --version
+        echo "Current directory:"
+        pwd
+        echo "Directory contents:"
+        ls -la
+
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential git python3 python3-pip openjdk-17-jdk unzip zip
-        pip3 install --break-system-packages buildozer cython
+
+    - name: Install Python dependencies
+      run: |
+        pip3 install buildozer cython
+
+    - name: Debug buildozer
+      run: |
+        echo "Buildozer version:"
         buildozer --version
-        python3 --version
-        java -version
+        echo "Buildozer init (dry run):"
+        buildozer init --dry-run
 
     - name: Build APK
       run: |
-        ls -la
+        echo "Starting build..."
         buildozer android debug -v
 
-    - name: Upload APK
+    - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: calendar-apk
-        path: bin/*.apk
-      if: success() || failure()
-
-    - name: Upload logs on failure
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-logs
-        path: .buildozer/android/platform/android-sdk*/logs
-      if: failure()
+        name: build-artifacts
+        path: |
+          bin/*.apk
+          .buildozer/android/platform/android-sdk*/logs
+      if: always()
