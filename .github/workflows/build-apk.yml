@@ -40,7 +40,7 @@ android.ndk = 25b
 android.arch = armeabi-v7a
 [buildozer]
 log_level = 2
-warn_on_root = 1" > buildozer.spec
+warn_on_root = 0" > buildozer.spec
 
     - name: Build APK
       uses: kivy/buildozer-action@v2
