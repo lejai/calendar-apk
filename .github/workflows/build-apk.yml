@@ -33,10 +33,15 @@ jobs:
             lib32stdc++6 \
             lib32z1
 
-    - name: Install Buildozer
+    - name: Install Buildozer and dependencies
       run: |
         pip install --upgrade pip
-        pip install buildozer
+        pip install buildozer cython
+        # 验证安装
+        echo "Buildozer version:"
+        buildozer --version
+        echo "Cython version:"
+        cython --version
 
     - name: Create buildozer.spec
       run: |
