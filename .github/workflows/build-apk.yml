@@ -63,7 +63,10 @@ jobs:
     - name: Build APK
       run: |
         echo "Starting build..."
-        buildozer android debug -v
+        echo "Creating assets directory if it doesn't exist..."
+        mkdir -p assets
+        echo "Building APK..."
+        buildozer android debug -v 2>&1 | tee build.log
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
@@ -73,4 +76,5 @@ jobs:
           bin/*.apk
           .buildozer/android/platform/android-sdk*/logs
           buildozer.spec
+          build.log
       if: always()
