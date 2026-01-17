@@ -115,11 +115,21 @@ jobs:
         # 设置环境变量
         export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
         export ANDROID_SDK_ROOT=$ANDROID_HOME
-        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin
         
-        # 构建 APK
-        echo "Building APK..."
-        buildozer android debug
+        # 显示环境信息
+        echo "Environment variables:"
+        printenv | grep -E "ANDROID|JAVA"
+        echo "Current directory:"
+        pwd
+        echo "Directory contents:"
+        ls -la
+        echo "Buildozer version:"
+        buildozer --version
+        
+        # 构建 APK（添加详细日志）
+        echo "Building APK with verbose output..."
+        buildozer android debug -v
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
