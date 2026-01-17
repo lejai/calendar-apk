@@ -46,9 +46,12 @@ warn_on_root = 0
 EOF
     
     - name: Build APK
-      uses: docker://kivy/buildozer:latest
-      with:
-        args: bash -c "cd /github/workspace && export BUILDOZER_ALLOW_ROOT=1 && buildozer android debug"
+      run: |
+        # 运行 buildozer 容器，自动回答确认提示
+        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "
+            export BUILDOZER_ALLOW_ROOT=1 && 
+            echo 'y' | buildozer android debug
+        "
     
     - name: List build results
       run: |
