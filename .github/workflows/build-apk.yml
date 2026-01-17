@@ -16,12 +16,8 @@ jobs:
 
     - name: Build APK with Docker
       run: |
-        # 创建构建目录
-        mkdir -p build
-        cp -r . build/
-        
         # 创建 Dockerfile
-        cat > build/Dockerfile << 'EOF'
+        cat > Dockerfile << 'EOF'
         FROM kivy/buildozer:latest
         
         WORKDIR /app
@@ -38,19 +34,20 @@ jobs:
         EOF
         
         # 构建并运行 Docker 容器
-        docker build -t calendarapk-builder build/
+        docker build -t calendarapk-builder .
         docker run --name calendarapk-container calendarapk-builder
-        docker cp calendarapk-container:/output/ build/
+        docker cp calendarapk-container:/output/ .
         
         # 清理
         docker rm calendarapk-container
         docker rmi calendarapk-builder
+        rm Dockerfile
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-artifacts
         path: |
-          build/output/*.apk
+          output/*.apk
           buildozer.spec
       if: always()
