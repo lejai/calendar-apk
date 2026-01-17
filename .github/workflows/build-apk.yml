@@ -92,7 +92,14 @@ jobs:
         echo "Creating assets directory if it doesn't exist..."
         mkdir -p assets
         echo "Building APK..."
-        buildozer android debug -v 2>&1 | tee build.log
+        echo "Environment variables:"
+        printenv | grep -E "ANDROID|JAVA"
+        echo "Current directory:"
+        pwd
+        echo "Directory contents:"
+        ls -la
+        # 运行 buildozer 构建并捕获所有输出
+        buildozer android debug -v
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
