@@ -26,7 +26,7 @@ jobs:
         COPY . .
         
         # 构建 APK
-        RUN buildozer android debug
+        RUN echo "y" | buildozer android debug
         
         # 复制构建结果
         RUN mkdir -p /output
