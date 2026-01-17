@@ -67,24 +67,50 @@ jobs:
         echo "修改后的 buildozer.spec 文件内容："
         cat buildozer.spec
 
-    - name: Accept Android SDK licenses
+    - name: Install and configure Android SDK
       run: |
-        # 设置环境变量以自动接受许可证
-        export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+        # 创建 Android SDK 目录
+        ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+        mkdir -p $ANDROID_HOME/cmdline-tools
+        
+        # 下载并安装 Android SDK Command Line Tools
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        unzip -q cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools
+        
+        # 重命名目录
+        mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+        
+        # 设置环境变量
+        export ANDROID_HOME=$ANDROID_HOME
         export ANDROID_SDK_ROOT=$ANDROID_HOME
-        # 创建许可证目录（如果不存在）
+        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+        
+        # 创建许可证目录并接受许可证
         mkdir -p $ANDROID_HOME/licenses
-        # 创建许可证文件
         echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_HOME/licenses/android-sdk-license
         echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > $ANDROID_HOME/licenses/android-sdk-preview-license
-        echo "Android SDK licenses accepted"
+        
+        # 安装必要的 SDK 组件
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0" --sdk_root=$ANDROID_HOME
+        
+        # 验证安装
+        echo "Android SDK installed successfully"
+        echo "sdkmanager path:"
+        which sdkmanager
+        echo "Platform tools installed:"
+        ls -la $ANDROID_HOME/platform-tools/
 
     - name: Build APK
       run: |
         # 创建 assets 目录
         mkdir -p assets
         
-        # 构建 APK（首次运行会下载 SDK 和 NDK）
+        # 设置环境变量
+        export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+        export ANDROID_SDK_ROOT=$ANDROID_HOME
+        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+        
+        # 构建 APK
         echo "Building APK..."
         buildozer android debug
 
