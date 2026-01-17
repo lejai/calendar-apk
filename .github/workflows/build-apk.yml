@@ -17,39 +17,30 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
-
-    - name: Debug environment
-      run: |
-        echo "Python version:"
-        python3 --version
-        echo "pip version:"
-        pip3 --version
-        echo "Current directory:"
-        pwd
-        echo "Directory contents:"
-        ls -la
+        python-version: '3.9'
 
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential git python3 python3-pip openjdk-17-jdk unzip zip wget curl
+        sudo apt-get install -y \
+            build-essential \
+            git \
+            openjdk-17-jdk \
+            unzip \
+            zip \
+            wget \
+            curl \
+            lib32stdc++6 \
+            lib32z1
 
-    - name: Install Python dependencies
+    - name: Install Buildozer
       run: |
-        pip3 install --upgrade pip
-        pip3 install buildozer cython kivy kivymd
+        pip install --upgrade pip
+        pip install buildozer
 
-    - name: Debug buildozer
+    - name: Create buildozer.spec
       run: |
-        echo "Buildozer version:"
-        buildozer --version
-        echo "Buildozer init (dry run):"
-        buildozer init --dry-run
-
-    - name: Create and configure buildozer.spec
-      run: |
-        if [ ! -f "buildozer.spec" ]; then buildozer init; fi
+        buildozer init
         sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
         sed -i 's/package.domain = org.test/package.domain = org.calendar/' buildozer.spec
@@ -60,54 +51,9 @@ jobs:
         sed -i 's/android.permissions = /android.permissions = INTERNET/' buildozer.spec
         cat buildozer.spec
 
-    - name: Download Android SDK and NDK
-      run: |
-        # 下载 Android SDK Command Line Tools
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O android-sdk-tools.zip
-        unzip -q android-sdk-tools.zip -d android-sdk
-        # 设置 ANDROID_HOME
-        export ANDROID_HOME=$PWD/android-sdk
-        export ANDROID_SDK_ROOT=$ANDROID_HOME
-        # 接受许可证
-        yes | $ANDROID_HOME/cmdline-tools/bin/sdkmanager --licenses > /dev/null 2>&1
-        # 安装 SDK 组件
-        $ANDROID_HOME/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" > /dev/null 2>&1
-        # 下载 NDK
-        wget -q https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O android-ndk.zip
-        unzip -q android-ndk.zip -d android-ndk
-        export ANDROID_NDK_HOME=$PWD/android-ndk/android-ndk-r25b
-        # 添加到环境变量
-        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-        echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
-        # 显示目录结构
-        echo "Android SDK 目录:"
-        ls -la $ANDROID_HOME
-        echo "Android NDK 目录:"
-        ls -la $ANDROID_NDK_HOME
-
     - name: Build APK
       run: |
-        echo "Starting build..."
-        echo "Creating assets directory if it doesn't exist..."
+        # 创建 assets 目录
         mkdir -p assets
-        echo "Building APK..."
-        echo "Environment variables:"
-        printenv | grep -E "ANDROID|JAVA"
-        echo "Current directory:"
-        pwd
-        echo "Directory contents:"
-        ls -la
-        # 运行 buildozer 构建并捕获所有输出
-        buildozer android debug -v
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: build-artifacts
-        path: |
-          bin/*.apk
-          .buildozer/android/platform/android-sdk*/logs
-          buildozer.spec
-          build.log
-      if: always()
+        # 首次运行会下载 SDK 和 NDK，可能需要较长时间
+        buildozer android debug
