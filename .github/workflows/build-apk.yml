@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: kivy/buildozer:latest
 
     steps:
     - uses: actions/checkout@v3
@@ -42,11 +44,20 @@ android.arch = armeabi-v7a
 log_level = 2
 warn_on_root = 1" > buildozer.spec
 
-    - name: Build APK with Buildozer Action
-      uses: ArtemSBulgakov/buildozer-action@v1
-      with:
-        command: android debug
-        buildozer_version: stable
+    - name: Build APK
+      run: |
+        # 设置环境变量
+        export BUILDOZER_ALLOW_ROOT=1
+        
+        # 显示当前目录和文件
+        pwd
+        ls -la
+        
+        # 开始构建
+        buildozer android debug
+        
+        # 显示构建结果
+        ls -la bin/ || true
 
     - name: Copy build artifacts
       run: |
