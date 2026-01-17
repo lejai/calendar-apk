@@ -137,7 +137,7 @@ class CalendarFrontend(MDBoxLayout):
     def _create_zodiac_display(self):
         """创建生肖底纹显示"""
         self.zodiac_image = Image(
-            source=f"c:\\Users\\lejai\\Desktop\\apk\\插图\\{self.backend.get_zodiac()}.jpg",
+            source=f"assets/{self.backend.get_zodiac()}.jpg",
             size_hint=(0.25, 0.25),
             opacity=0.4,
             pos_hint={"center_x": 0.85, "center_y": 0.25}
@@ -263,7 +263,7 @@ class CalendarFrontend(MDBoxLayout):
         self.calendar_grid.clear_widgets()  # 清空原有日历控件
         cal_matrix = self.backend.get_calendar_matrix()  # 从后端获取日历矩阵
         self.date_title.text = self.backend.get_current_date_str()  # 更新年月标题
-        self.zodiac_image.source = f"c:\\Users\\lejai\\Desktop\\apk\\插图\\{self.backend.get_zodiac()}.jpg"  # 更新生肖显示
+        self.zodiac_image.source = f"assets/{self.backend.get_zodiac()}.jpg"  # 更新生肖显示
         
         # 检查当前是否为当月，控制今日按钮的可见性
         from datetime import datetime
