@@ -43,6 +43,25 @@ log_level = 2
 warn_on_root = 0" > buildozer.spec
 
     - name: Build APK
-      uses: kivy/buildozer-action@v2
+      run: |
+        # 运行 buildozer 容器，自动回答确认提示
+        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "
+            export BUILDOZER_ALLOW_ROOT=1 && 
+            echo y | buildozer android debug
+        "
+
+    - name: Copy build artifacts
+      run: |
+        mkdir -p output
+        cp -r bin/* output/ || true
+        ls -la output/
+        ls -la bin/ || true
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
       with:
-        command: android debug
+        name: build-artifacts
+        path: |
+          output/*.apk
+          buildozer.spec
+      if: always()
