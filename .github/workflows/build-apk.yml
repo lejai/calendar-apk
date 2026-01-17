@@ -14,81 +14,43 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    - name: Install system dependencies
+    - name: Build APK with Docker
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-            build-essential \
-            git \
-            openjdk-17-jdk \
-            unzip \
-            zip \
-            wget \
-            curl \
-            lib32stdc++6 \
-            lib32z1
-
-    - name: Install Buildozer and dependencies
-      run: |
-        pip install --upgrade pip
-        pip install buildozer cython
-        # 验证安装
-        echo "Buildozer version:"
-        buildozer --version
-        echo "Cython version:"
-        cython --version
-
-    - name: Create buildozer.spec
-      run: |
-        # 检查是否已经存在 buildozer.spec 文件
-        if [ ! -f "buildozer.spec" ]; then
-            echo "buildozer.spec 文件不存在，初始化新文件："
-            buildozer init
-        else
-            echo "buildozer.spec 文件已存在，跳过初始化："
-        fi
-        # 显示当前文件内容
-        cat buildozer.spec
-        # 修改配置（移除中文注释）
-        sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
-        sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
-        sed -i 's/package.domain = org.test/package.domain = org.calendar/' buildozer.spec
-        # 智能修改依赖项，避免重复
-        if grep -q "kivymd" buildozer.spec; then
-            echo "kivymd 依赖项已存在，跳过添加："
-        else
-            sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivymd/' buildozer.spec
-        fi
-        sed -i 's/android.api = 31/android.api = 33/' buildozer.spec
-        sed -i 's/android.ndk = 25b/android.ndk = 25b/' buildozer.spec
-        sed -i 's/android.sdk = 24/android.sdk = 33/' buildozer.spec
-        sed -i 's/android.permissions = /android.permissions = INTERNET/' buildozer.spec
-        # 显示修改后的文件内容
-        echo "修改后的 buildozer.spec 文件内容："
-        cat buildozer.spec
-
-    - name: Build APK with p4a directly
-      run: |
-        # 创建 assets 目录
-        mkdir -p assets
+        # 创建构建目录
+        mkdir -p build
+        cp -r . build/
         
-        # 安装 python-for-android
-        pip install python-for-android
+        # 创建 Dockerfile
+        cat > build/Dockerfile << 'EOF'
+        FROM kivy/buildozer:latest
+        
+        WORKDIR /app
+        
+        # 复制项目文件
+        COPY . .
         
         # 构建 APK
-        echo "Building APK with python-for-android..."
-        python -m pythonforandroid.toolchain create --dist_name=calendarapk --bootstrap=sdl2 --requirements=python3,kivy,kivymd --arch=arm64-v8a --arch=armeabi-v7a --copy-libs --color=always --storage-dir=./build-p4a --ndk-api=21 --ignore-setup-py --debug
+        RUN buildozer android debug
+        
+        # 复制构建结果
+        RUN mkdir -p /output
+        RUN cp bin/*.apk /output/
+        EOF
+        
+        # 构建并运行 Docker 容器
+        docker build -t calendarapk-builder build/
+        docker run --name calendarapk-container calendarapk-builder
+        docker cp calendarapk-container:/output/ build/
+        
+        # 清理
+        docker rm calendarapk-container
+        docker rmi calendarapk-builder
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-artifacts
         path: |
-          ./build-p4a/dists/calendarapk/*.apk
+          build/output/*.apk
           buildozer.spec
       if: always()
