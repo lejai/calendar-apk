@@ -40,7 +40,17 @@ jobs:
 
     - name: Create buildozer.spec
       run: |
-        buildozer init
+        # 检查是否已经存在 buildozer.spec 文件
+        if [ -f "buildozer.spec" ]; then
+            echo "buildozer.spec 文件已存在，显示内容："
+            cat buildozer.spec
+        else
+            echo "buildozer.spec 文件不存在，初始化新文件："
+            buildozer init
+            # 显示初始化后的文件内容
+            cat buildozer.spec
+        fi
+        # 修改配置
         sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
         sed -i 's/package.domain = org.test/package.domain = org.calendar/' buildozer.spec
@@ -49,6 +59,8 @@ jobs:
         sed -i 's/android.ndk = 25b/android.ndk = 25b/' buildozer.spec
         sed -i 's/android.sdk = 24/android.sdk = 33/' buildozer.spec
         sed -i 's/android.permissions = /android.permissions = INTERNET/' buildozer.spec
+        # 显示修改后的文件内容
+        echo "修改后的 buildozer.spec 文件内容："
         cat buildozer.spec
 
     - name: Build APK
