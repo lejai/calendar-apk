@@ -42,22 +42,11 @@ android.arch = armeabi-v7a
 log_level = 2
 warn_on_root = 1" > buildozer.spec
 
-    - name: Build APK with debug info
-      run: |
-        # 显示当前目录和文件
-        pwd
-        ls -la
-        
-        # 运行 buildozer 容器，添加详细的调试信息
-        docker run --rm -v $(pwd):/app -e BUILDOZER_ALLOW_ROOT=1 kivy/buildozer:latest bash -c "
-            echo '=== 容器内环境 ==='
-            pwd
-            ls -la
-            echo '=== 开始构建 ==='
-            buildozer android debug
-            echo '=== 构建完成 ==='
-            ls -la bin/ || true
-        "
+    - name: Build APK with Buildozer Action
+      uses: ArtemSBulgakov/buildozer-action@v1
+      with:
+        command: android debug
+        buildozer_version: stable
 
     - name: Copy build artifacts
       run: |
