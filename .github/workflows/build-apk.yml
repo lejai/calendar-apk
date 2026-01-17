@@ -81,7 +81,9 @@ jobs:
         echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > ~/Android/Sdk/licenses/android-sdk-preview-license
         
         # 安装必要的 SDK 组件
-        yes | sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+        export ANDROID_HOME=$HOME/Android/Sdk
+        export PATH=$PATH:$HOME/Android/Sdk/cmdline-tools/latest/bin
+        yes | $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
 
     - name: Build APK
       run: |
