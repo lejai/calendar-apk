@@ -60,7 +60,7 @@ package.domain = org.calendar
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
-requirements = python3,kivy,kivymd
+requirements = python3,kivy
 orientation = portrait
 osx.python_version = 3
 osx.kivy_version = 2.0.0
@@ -68,7 +68,7 @@ fullscreen = 0
 android.api = 33
 android.sdk = 33
 android.ndk = 25b
-android.arch = armeabi-v7a,arm64-v8a
+android.arch = armeabi-v7a
 android.buildtools = 33.0.0
 android.use_aapt2 = True
 android.permissions = INTERNET
@@ -87,6 +87,9 @@ android.debug = True" > buildozer.spec
         # 复制构建结果
         mkdir -p output
         docker cp calendarapk-builder:/app/bin/. output/
+        
+        # 显示构建结果
+        ls -la output/
         
         # 清理
         docker rm calendarapk-builder
