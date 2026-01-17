@@ -26,6 +26,7 @@ jobs:
         COPY . .
         
         # 预先创建 Android SDK 许可证文件和目录结构
+        RUN apt-get update && apt-get install -y wget unzip
         RUN mkdir -p /root/.buildozer/android/platform/android-sdk/licenses
         RUN mkdir -p /root/.buildozer/android/platform/android-sdk/cmdline-tools
         RUN echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
