@@ -14,62 +14,88 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Build APK with Docker
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install system dependencies
       run: |
-        # 创建 Dockerfile
-        cat > Dockerfile << 'EOF'
-        FROM kivy/buildozer:latest
+        sudo apt-get update
+        sudo apt-get install -y \
+            build-essential \
+            git \
+            openjdk-17-jdk \
+            unzip \
+            zip \
+            wget \
+            curl \
+            lib32stdc++6 \
+            lib32z1
+
+    - name: Install Buildozer and dependencies
+      run: |
+        pip install --upgrade pip
+        pip install buildozer cython
+
+    - name: Create buildozer.spec
+      run: |
+        if [ ! -f "buildozer.spec" ]; then
+            buildozer init
+        fi
+        # 修改配置
+        sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
+        sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
+        sed -i 's/package.domain = org.test/package.domain = org.calendar/' buildozer.spec
+        sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivymd/' buildozer.spec
+        sed -i 's/android.api = 31/android.api = 33/' buildozer.spec
+        sed -i 's/android.ndk = 25b/android.ndk = 25b/' buildozer.spec
+        sed -i 's/android.sdk = 24/android.sdk = 33/' buildozer.spec
+        sed -i 's/android.permissions = /android.permissions = INTERNET/' buildozer.spec
+
+    - name: Set up Android SDK
+      run: |
+        # 创建 SDK 目录
+        mkdir -p ~/Android/Sdk
+        cd ~/Android/Sdk
         
-        WORKDIR /app
+        # 下载并安装 Command Line Tools
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+        unzip -q commandlinetools-linux-9477386_latest.zip
+        mv cmdline-tools cmdline-tools-temp
+        mkdir -p cmdline-tools/latest
+        mv cmdline-tools-temp/* cmdline-tools/latest/
+        rm -rf cmdline-tools-temp
+        rm commandlinetools-linux-9477386_latest.zip
         
-        # 复制项目文件
-        COPY . .
+        # 设置环境变量
+        echo "ANDROID_HOME=$HOME/Android/Sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$HOME/Android/Sdk" >> $GITHUB_ENV
+        echo "$HOME/Android/Sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "$HOME/Android/Sdk/platform-tools" >> $GITHUB_PATH
+        echo "$HOME/Android/Sdk/build-tools/33.0.0" >> $GITHUB_PATH
         
-        # 预先创建 Android SDK 许可证文件和目录结构
-        RUN apt-get update && apt-get install -y wget unzip
-        RUN mkdir -p /root/.buildozer/android/platform/android-sdk/licenses
-        RUN mkdir -p /root/.buildozer/android/platform/android-sdk/cmdline-tools
-        RUN echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        RUN echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
-        RUN echo -e "\nd975f751698327a46b6bb56c5f1b1370cffdc550" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-arm-dbt-license
-        
-        # 下载并安装 Android SDK Command Line Tools
-        RUN wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/cmdline-tools.zip
-        RUN unzip -q /tmp/cmdline-tools.zip -d /root/.buildozer/android/platform/android-sdk/cmdline-tools
-        RUN mv /root/.buildozer/android/platform/android-sdk/cmdline-tools/cmdline-tools /root/.buildozer/android/platform/android-sdk/cmdline-tools/latest
-        RUN rm /tmp/cmdline-tools.zip
-        
-        # 创建旧的 tools/bin 目录结构并添加符号链接
-        RUN mkdir -p /root/.buildozer/android/platform/android-sdk/tools/bin
-        RUN ln -s /root/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager /root/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
-        RUN ln -s /root/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/avdmanager /root/.buildozer/android/platform/android-sdk/tools/bin/avdmanager
+        # 接受许可证
+        mkdir -p ~/Android/Sdk/licenses
+        echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/Android/Sdk/licenses/android-sdk-license
+        echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > ~/Android/Sdk/licenses/android-sdk-preview-license
         
         # 安装必要的 SDK 组件
-        RUN yes | /root/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0" --sdk_root=/root/.buildozer/android/platform/android-sdk
+        yes | sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+
+    - name: Build APK
+      run: |
+        # 创建 assets 目录
+        mkdir -p assets
         
         # 构建 APK
-        RUN echo "y" | buildozer android debug
-        
-        # 复制构建结果
-        RUN mkdir -p /output
-        RUN cp bin/*.apk /output/
-        EOF
-        
-        # 构建并运行 Docker 容器
-        docker build -t calendarapk-builder .
-        docker run --name calendarapk-container calendarapk-builder
-        docker cp calendarapk-container:/output/ .
-        
-        # 清理
-        docker rm calendarapk-container
-        docker rmi calendarapk-builder
-        rm Dockerfile
+        buildozer android debug
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-artifacts
         path: |
-          output/*.apk
+          bin/*.apk
           buildozer.spec
       if: always()
