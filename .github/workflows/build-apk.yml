@@ -41,11 +41,13 @@ android.arch = armeabi-v7a
 log_level = 2
 warn_on_root = 0" > buildozer.spec
     
-    - name: Build APK
-      uses: ArtemSBulgakov/buildozer-action@v1
-      with:
-        command: android debug
-        buildozer_version: stable
+    - name: Build APK with Docker
+      run: |
+        # Run buildozer in Docker container
+        docker run --rm -v $(pwd):/app -e BUILDOZER_ALLOW_ROOT=1 docker.io/kivy/buildozer:latest bash -c "
+            cd /app && 
+            echo 'y' | buildozer android debug
+        "
     
     - name: List build results
       run: |
