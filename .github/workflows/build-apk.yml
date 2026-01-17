@@ -79,11 +79,16 @@ jobs:
         mkdir -p ~/Android/Sdk/licenses
         echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/Android/Sdk/licenses/android-sdk-license
         echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > ~/Android/Sdk/licenses/android-sdk-preview-license
+        echo -e "\nd975f751698327a46b6bb56c5f1b1370cffdc550" > ~/Android/Sdk/licenses/android-sdk-arm-dbt-license
         
         # 安装必要的 SDK 组件
         export ANDROID_HOME=$HOME/Android/Sdk
         export PATH=$PATH:$HOME/Android/Sdk/cmdline-tools/latest/bin
         yes | $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+        
+        # 创建符号链接，确保 buildozer 能找到 SDK 工具
+        mkdir -p ~/.buildozer/android/platform
+        ln -s ~/Android/Sdk ~/.buildozer/android/platform/android-sdk
 
     - name: Build APK
       run: |
