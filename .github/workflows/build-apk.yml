@@ -89,6 +89,11 @@ jobs:
         # 创建符号链接，确保 buildozer 能找到 SDK 工具
         mkdir -p ~/.buildozer/android/platform
         ln -s ~/Android/Sdk ~/.buildozer/android/platform/android-sdk
+        
+        # 创建旧的 tools/bin 目录结构并添加符号链接
+        mkdir -p ~/Android/Sdk/tools/bin
+        ln -s ~/Android/Sdk/cmdline-tools/latest/bin/sdkmanager ~/Android/Sdk/tools/bin/sdkmanager
+        ln -s ~/Android/Sdk/cmdline-tools/latest/bin/avdmanager ~/Android/Sdk/tools/bin/avdmanager
 
     - name: Build APK
       run: |
