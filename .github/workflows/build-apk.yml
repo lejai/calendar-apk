@@ -89,6 +89,7 @@ jobs:
         mkdir -p assets
         
         # 构建 APK
+        export BUILDOZER_ALLOW_ROOT=1
         buildozer android debug
 
     - name: Upload artifacts
