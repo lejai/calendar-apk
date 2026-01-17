@@ -14,65 +14,82 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Create minimal project structure
+      run: |
+        # 创建基本的项目文件
+        echo "from kivy.app import App
+from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from datetime import datetime
+
+class CalendarApp(App):
+    def build(self):
+        layout = BoxLayout(orientation='vertical', padding=50, spacing=20)
+        
+        # 显示当前日期
+        current_date = datetime.now().strftime('%Y年%m月%d日')
+        date_label = Label(text=current_date, font_size=40, bold=True)
+        layout.add_widget(date_label)
+        
+        # 显示星期
+        weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+        weekday = weekdays[datetime.now().weekday()]
+        weekday_label = Label(text=weekday, font_size=30)
+        layout.add_widget(weekday_label)
+        
+        # 添加一个按钮
+        button = Button(text='刷新日期', font_size=20, size_hint=(0.5, 0.2), pos_hint={'center_x': 0.5})
+        button.bind(on_press=self.refresh_date)
+        layout.add_widget(button)
+        
+        return layout
+    
+    def refresh_date(self, instance):
+        # 这里可以添加刷新日期的逻辑
+        pass
+
+if __name__ == '__main__':
+    CalendarApp().run()" > main.py
+
+        # 创建 buildozer.spec
+        echo "[app]
+title = 极简日历
+package.name = calendarapk
+package.domain = org.calendar
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas
+version = 0.1
+requirements = python3,kivy,kivymd
+orientation = portrait
+osx.python_version = 3
+osx.kivy_version = 2.0.0
+fullscreen = 0
+android.api = 33
+android.sdk = 33
+android.ndk = 25b
+android.arch = armeabi-v7a,arm64-v8a
+android.buildtools = 33.0.0
+android.use_aapt2 = True
+android.permissions = INTERNET
+services =
+[buildozer]
+log_level = 2
+warn_on_root = 1
+[app:debug]
+android.debug = True" > buildozer.spec
+
     - name: Build APK with Docker
       run: |
-        # 创建 Dockerfile
-        cat > Dockerfile << 'EOF'
-        FROM kivy/buildozer:latest
-        
-        WORKDIR /app
-        
-        # 复制项目文件
-        COPY . .
-        
-        # 创建 buildozer.spec
-        RUN if [ ! -f "buildozer.spec" ]; then \
-            buildozer init; \
-        fi
-        
-        # 修改配置
-        RUN sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
-        RUN sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
-        RUN sed -i 's/package.domain = org.test/package.domain = org.calendar/' buildozer.spec
-        RUN sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivymd/' buildozer.spec
-        RUN sed -i 's/android.api = 31/android.api = 33/' buildozer.spec
-        RUN sed -i 's/android.ndk = 25b/android.ndk = 25b/' buildozer.spec
-        RUN sed -i 's/android.sdk = 24/android.sdk = 33/' buildozer.spec
-        RUN sed -i 's/android.permissions = /android.permissions = INTERNET/' buildozer.spec
-        
-        # 安装必要的依赖
-        RUN apt-get update && apt-get install -y --no-install-recommends \
-            wget \
-            unzip \
-            && rm -rf /var/lib/apt/lists/*
-        
-        # 预先创建 Android SDK 许可证文件和目录结构
-        RUN mkdir -p /root/.buildozer/android/platform/android-sdk/licenses
-        RUN echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-        RUN echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
-        RUN echo -e "\nd975f751698327a46b6bb56c5f1b1370cffdc550" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-arm-dbt-license
-        
-        # 创建 assets 目录
-        RUN mkdir -p assets
-        
-        # 构建 APK（添加详细输出）
-        RUN buildozer android debug -v
+        # 运行 buildozer 容器
+        docker run --name calendarapk-builder -v $(pwd):/app kivy/buildozer:latest bash -c "cd /app && buildozer android debug"
         
         # 复制构建结果
-        RUN mkdir -p /output
-        RUN cp bin/*.apk /output/ || echo "No APK files found"
-        RUN ls -la /output/
-        EOF
-        
-        # 构建并运行 Docker 容器
-        docker build -t calendarapk-builder .
-        docker run --name calendarapk-container calendarapk-builder
-        docker cp calendarapk-container:/output/ .
+        mkdir -p output
+        docker cp calendarapk-builder:/app/bin/. output/
         
         # 清理
-        docker rm calendarapk-container
-        docker rmi calendarapk-builder
-        rm Dockerfile
+        docker rm calendarapk-builder
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
