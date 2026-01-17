@@ -58,7 +58,12 @@ jobs:
         sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
         sed -i 's/package.domain = org.test/package.domain = org.calendar/' buildozer.spec
-        sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivymd/' buildozer.spec
+        # 智能修改依赖项，避免重复
+        if grep -q "kivymd" buildozer.spec; then
+            echo "kivymd 依赖项已存在，跳过添加："
+        else
+            sed -i 's/requirements = python3,kivy/requirements = python3,kivy,kivymd/' buildozer.spec
+        fi
         sed -i 's/android.api = 31/android.api = 33/' buildozer.spec
         sed -i 's/android.ndk = 25b/android.ndk = 25b/' buildozer.spec
         sed -i 's/android.sdk = 24/android.sdk = 33/' buildozer.spec
@@ -115,7 +120,10 @@ jobs:
         # 设置环境变量
         export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
         export ANDROID_SDK_ROOT=$ANDROID_HOME
-        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin
+        export ANDROID_NDK=$HOME/.buildozer/android/platform/android-ndk-r25b
+        export ANDROID_NDK_HOME=$ANDROID_NDK
+        export ANDROID_NDK_ROOT=$ANDROID_NDK
+        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools/bin:$ANDROID_NDK
         
         # 显示环境信息
         echo "Environment variables:"
