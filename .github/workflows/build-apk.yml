@@ -25,11 +25,26 @@ jobs:
         # 复制项目文件
         COPY . .
         
-        # 预先创建 Android SDK 许可证文件
+        # 预先创建 Android SDK 许可证文件和目录结构
         RUN mkdir -p /root/.buildozer/android/platform/android-sdk/licenses
+        RUN mkdir -p /root/.buildozer/android/platform/android-sdk/cmdline-tools
         RUN echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
         RUN echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
         RUN echo -e "\nd975f751698327a46b6bb56c5f1b1370cffdc550" > /root/.buildozer/android/platform/android-sdk/licenses/android-sdk-arm-dbt-license
+        
+        # 下载并安装 Android SDK Command Line Tools
+        RUN wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/cmdline-tools.zip
+        RUN unzip -q /tmp/cmdline-tools.zip -d /root/.buildozer/android/platform/android-sdk/cmdline-tools
+        RUN mv /root/.buildozer/android/platform/android-sdk/cmdline-tools/cmdline-tools /root/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+        RUN rm /tmp/cmdline-tools.zip
+        
+        # 创建旧的 tools/bin 目录结构并添加符号链接
+        RUN mkdir -p /root/.buildozer/android/platform/android-sdk/tools/bin
+        RUN ln -s /root/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager /root/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
+        RUN ln -s /root/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/avdmanager /root/.buildozer/android/platform/android-sdk/tools/bin/avdmanager
+        
+        # 安装必要的 SDK 组件
+        RUN yes | /root/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0" --sdk_root=/root/.buildozer/android/platform/android-sdk
         
         # 构建 APK
         RUN echo "y" | buildozer android debug
