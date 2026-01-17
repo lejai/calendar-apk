@@ -41,15 +41,14 @@ jobs:
     - name: Create buildozer.spec
       run: |
         # 检查是否已经存在 buildozer.spec 文件
-        if [ -f "buildozer.spec" ]; then
-            echo "buildozer.spec 文件已存在，显示内容："
-            cat buildozer.spec
-        else
+        if [ ! -f "buildozer.spec" ]; then
             echo "buildozer.spec 文件不存在，初始化新文件："
             buildozer init
-            # 显示初始化后的文件内容
-            cat buildozer.spec
+        else
+            echo "buildozer.spec 文件已存在，跳过初始化："
         fi
+        # 显示当前文件内容
+        cat buildozer.spec
         # 修改配置
         sed -i 's/title = My Application/title = 极简日历/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = calendarapk/' buildozer.spec
