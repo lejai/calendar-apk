@@ -60,6 +60,32 @@ jobs:
         sed -i 's/android.permissions = /android.permissions = INTERNET/' buildozer.spec
         cat buildozer.spec
 
+    - name: Download Android SDK and NDK
+      run: |
+        # 下载 Android SDK Command Line Tools
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O android-sdk-tools.zip
+        unzip -q android-sdk-tools.zip -d android-sdk
+        # 设置 ANDROID_HOME
+        export ANDROID_HOME=$PWD/android-sdk
+        export ANDROID_SDK_ROOT=$ANDROID_HOME
+        # 接受许可证
+        yes | $ANDROID_HOME/cmdline-tools/bin/sdkmanager --licenses > /dev/null 2>&1
+        # 安装 SDK 组件
+        $ANDROID_HOME/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" > /dev/null 2>&1
+        # 下载 NDK
+        wget -q https://dl.google.com/android/repository/android-ndk-r25b-linux.zip -O android-ndk.zip
+        unzip -q android-ndk.zip -d android-ndk
+        export ANDROID_NDK_HOME=$PWD/android-ndk/android-ndk-r25b
+        # 添加到环境变量
+        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+        echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
+        # 显示目录结构
+        echo "Android SDK 目录:"
+        ls -la $ANDROID_HOME
+        echo "Android NDK 目录:"
+        ls -la $ANDROID_NDK_HOME
+
     - name: Build APK
       run: |
         echo "Starting build..."
