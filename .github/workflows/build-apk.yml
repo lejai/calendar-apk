@@ -13,35 +13,36 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Create buildozer.spec
+      run: |
+        echo "[app]" > buildozer.spec
+        echo "title = CalendarApp" >> buildozer.spec
+        echo "package.name = calendarapk" >> buildozer.spec
+        echo "package.domain = org.calendar" >> buildozer.spec
+        echo "source.dir = ." >> buildozer.spec
+        echo "source.include_exts = py,png,jpg,kv,atlas" >> buildozer.spec
+        echo "version = 1.0.0" >> buildozer.spec
+        echo "requirements = python3,kivy" >> buildozer.spec
+        echo "android.api = 33" >> buildozer.spec
+        echo "android.sdk = 33" >> buildozer.spec
+        echo "android.ndk = 25b" >> buildozer.spec
+        echo "android.arch = armeabi-v7a" >> buildozer.spec
+        echo "android.permissions = INTERNET" >> buildozer.spec
+        echo "[buildozer]" >> buildozer.spec
+        echo "log_level = 2" >> buildozer.spec
+        echo "warn_on_root = 0" >> buildozer.spec
+    
     - name: Build APK
       run: |
-        # 创建一个简化的 buildozer.spec 文件，专注于构建基本的 APK
-        echo '[app]
-title = CalendarApp
-package.name = calendarapk
-package.domain = org.calendar
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
-version = 1.0.0
-requirements = python3,kivy
-android.api = 33
-android.sdk = 33
-android.ndk = 25b
-android.arch = armeabi-v7a
-android.permissions = INTERNET
-[buildozer]
-log_level = 2
-warn_on_root = 0' > buildozer.spec
-
         # 显示当前目录结构
         ls -la
         
         # 使用 Docker 运行 buildozer 容器
         docker run --rm -v $(pwd):/app --env BUILDOZER_ALLOW_ROOT=1 kivy/buildozer:latest bash -c "
-            echo 'Starting build process...' &&
-            ls -la &&
-            buildozer android debug 2>&1 | tee build.log &&
-            echo 'Build process completed'
+        echo 'Starting build process...' &&
+        ls -la &&
+        buildozer android debug 2>&1 | tee build.log &&
+        echo 'Build process completed'
         "
     
     - name: List build results
