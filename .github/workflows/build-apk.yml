@@ -32,36 +32,19 @@ jobs:
         echo "log_level = 2" >> buildozer.spec
         echo "warn_on_root = 0" >> buildozer.spec
     
-    - name: Build APK
-      run: |
-        # 显示当前目录结构
-        ls -la
-        
-        # 使用 Docker 运行 buildozer 容器，使用管道自动回答确认提示
-        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "
-        echo 'Starting build process...' &&
-        ls -la &&
-        # 使用管道自动回答确认提示
-        echo 'y' | buildozer android debug 2>&1 | tee build.log &&
-        echo 'Build process completed'
-        "
+    - name: Build APK with Buildozer Action
+      uses: ArtemSBulgakov/buildozer-action@v1
+      with:
+        command: android debug
     
     - name: List build results
       run: |
         ls -la
         ls -la bin/ || true
-        cat build.log || true
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: apk
         path: bin/*.apk
-      if: always()
-    
-    - name: Upload build logs
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs
-        path: build.log
       if: always()
