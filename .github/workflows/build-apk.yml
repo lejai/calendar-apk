@@ -13,8 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Create buildozer.spec
+    - name: Build APK with direct Docker command
       run: |
+        # Create minimal buildozer.spec
         echo "[app]" > buildozer.spec
         echo "title = CalendarApp" >> buildozer.spec
         echo "package.name = calendarapk" >> buildozer.spec
@@ -31,39 +32,9 @@ jobs:
         echo "[buildozer]" >> buildozer.spec
         echo "log_level = 2" >> buildozer.spec
         echo "warn_on_root = 0" >> buildozer.spec
-    
-    - name: Create patch script
-      run: |
-        # Create patch_buildozer.py using a different approach
-        echo "import os" > patch_buildozer.py
-        echo "import re" >> patch_buildozer.py
-        echo "" >> patch_buildozer.py
-        echo "# Find buildozer __init__.py" >> patch_buildozer.py
-        echo "buildozer_init = '/home/user/.venv/lib/python3.12/site-packages/buildozer/__init__.py'" >> patch_buildozer.py
-        echo "" >> patch_buildozer.py
-        echo "if os.path.exists(buildozer_init):" >> patch_buildozer.py
-        echo "    with open(buildozer_init, 'r') as f:" >> patch_buildozer.py
-        echo "        content = f.read()" >> patch_buildozer.py
-        echo "    new_content = re.sub(r'def check_root\\(self\\):.*?return cont', 'def check_root(self):\\n        return True  # Patched', content, flags=re.DOTALL)" >> patch_buildozer.py
-        echo "    with open(buildozer_init, 'w') as f:" >> patch_buildozer.py
-        echo "        f.write(new_content)" >> patch_buildozer.py
-        echo "    print('Patched buildozer')" >> patch_buildozer.py
-        echo "else:" >> patch_buildozer.py
-        echo "    print('Buildozer not found')" >> patch_buildozer.py
-    
-    - name: Build APK with Docker
-      run: |
-        # Show directory structure
-        ls -la
         
-        # Run Docker container with patched buildozer
-        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "
-        echo 'Starting build...' &&
-        ls -la &&
-        python3 /app/patch_buildozer.py &&
-        buildozer android debug 2>&1 | tee /app/build.log &&
-        echo 'Build completed'
-        "
+        # Use Docker to build APK with a simple approach
+        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "sed -i 's/def check_root(self):/def check_root(self):\n        return True/' /home/user/.venv/lib/python3.12/site-packages/buildozer/__init__.py && buildozer android debug 2>&1 | tee /app/build.log"
     
     - name: List build results
       run: |
