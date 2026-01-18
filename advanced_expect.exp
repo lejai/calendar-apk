@@ -1,0 +1,47 @@
+#!/usr/bin/expect -f
+
+# 设置超时时间为1小时
+set timeout 3600
+
+# 记录开始时间
+set start_time [clock seconds]
+
+# 生成构建日志文件
+set log_file [open "build.log" "w"]
+log_file $log_file
+
+# 发送命令
+spawn buildozer android debug
+
+# 处理各种可能的提示
+expect {
+    "Are you sure you want to continue [y/n]?" {
+        send "y\r"
+        exp_continue
+    }
+    "Do you want to continue [y/n]?" {
+        send "y\r"
+        exp_continue
+    }
+    "Press any key to continue..." {
+        send "\r"
+        exp_continue
+    }
+    "Enter your choice:" {
+        send "1\r"
+        exp_continue
+    }
+    eof {
+        # 到达文件末尾，退出
+    }
+    timeout {
+        # 超时，记录错误
+        puts "Timeout reached after [expr [clock seconds] - $start_time] seconds"
+    }
+}
+
+# 关闭日志文件
+close $log_file
+
+# 等待进程结束
+wait
