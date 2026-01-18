@@ -13,28 +13,35 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Build APK with direct Docker command
+    - name: Create build script
       run: |
-        # Create minimal buildozer.spec
-        echo "[app]" > buildozer.spec
-        echo "title = CalendarApp" >> buildozer.spec
-        echo "package.name = calendarapk" >> buildozer.spec
-        echo "package.domain = org.calendar" >> buildozer.spec
-        echo "source.dir = ." >> buildozer.spec
-        echo "source.include_exts = py,png,jpg,kv,atlas" >> buildozer.spec
-        echo "version = 1.0.0" >> buildozer.spec
-        echo "requirements = python3,kivy" >> buildozer.spec
-        echo "android.api = 33" >> buildozer.spec
-        echo "android.sdk = 33" >> buildozer.spec
-        echo "android.ndk = 25b" >> buildozer.spec
-        echo "android.arch = armeabi-v7a" >> buildozer.spec
-        echo "android.permissions = INTERNET" >> buildozer.spec
-        echo "[buildozer]" >> buildozer.spec
-        echo "log_level = 2" >> buildozer.spec
-        echo "warn_on_root = 0" >> buildozer.spec
-        
-        # Use Docker to build APK with a simple approach
-        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "sed -i 's/def check_root(self):/def check_root(self):\n        return True/' /home/user/.venv/lib/python3.12/site-packages/buildozer/__init__.py && buildozer android debug 2>&1 | tee /app/build.log"
+        echo "#!/bin/bash" > build.sh
+        echo "echo '[app]' > buildozer.spec" >> build.sh
+        echo "echo 'title = CalendarApp' >> buildozer.spec" >> build.sh
+        echo "echo 'package.name = calendarapk' >> buildozer.spec" >> build.sh
+        echo "echo 'package.domain = org.calendar' >> buildozer.spec" >> build.sh
+        echo "echo 'source.dir = .' >> buildozer.spec" >> build.sh
+        echo "echo 'source.include_exts = py,png,jpg,kv,atlas' >> buildozer.spec" >> build.sh
+        echo "echo 'version = 1.0.0' >> buildozer.spec" >> build.sh
+        echo "echo 'requirements = python3,kivy' >> buildozer.spec" >> build.sh
+        echo "echo 'android.api = 33' >> buildozer.spec" >> build.sh
+        echo "echo 'android.sdk = 33' >> buildozer.spec" >> build.sh
+        echo "echo 'android.ndk = 25b' >> buildozer.spec" >> build.sh
+        echo "echo 'android.arch = armeabi-v7a' >> buildozer.spec" >> build.sh
+        echo "echo 'android.permissions = INTERNET' >> buildozer.spec" >> build.sh
+        echo "echo '[buildozer]' >> buildozer.spec" >> build.sh
+        echo "echo 'log_level = 2' >> buildozer.spec" >> build.sh
+        echo "echo 'warn_on_root = 0' >> buildozer.spec" >> build.sh
+        echo "" >> build.sh
+        echo "# Create non-root user and build" >> build.sh
+        echo "useradd -m -s /bin/bash builduser" >> build.sh
+        echo "chown -R builduser:builduser /app" >> build.sh
+        echo "su -c 'cd /app && buildozer android debug 2>&1' builduser" >> build.sh
+        chmod +x build.sh
+    
+    - name: Build APK
+      run: |
+        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "cd /app && ./build.sh | tee build.log"
     
     - name: List build results
       run: |
