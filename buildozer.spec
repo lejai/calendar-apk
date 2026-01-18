@@ -13,7 +13,7 @@ android.api = 33
 android.ndk = 25b
 android.sdk = 33
 android.permissions = INTERNET
-android.archs = armeabi-v7a,arm64-v8a
+android.archs = armeabi-v7a,arm64-v8a,x86,x86_64
 android.use_aapt2 = True
 android.enable_androidx = True
 
