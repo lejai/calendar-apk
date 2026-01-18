@@ -13,47 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Create project files
-      run: |
-        # Create main.py
-        cat > main.py << 'EOF'
-from kivy.app import App
-from kivy.uix.label import Label
-
-class TestApp(App):
-    def build(self):
-        return Label(text='Hello World')
-
-if __name__ == '__main__':
-    TestApp().run()
-EOF
-        
-        # Create buildozer.spec
-        cat > buildozer.spec << 'EOF'
-[app]
-title = TestApp
-package.name = testapp
-package.domain = org.test
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
-version = 0.1
-requirements = python3,kivy
-orientation = portrait
-osx.python_version = 3
-osx.kivy_version = 2.0.0
-fullscreen = 0
-android.api = 33
-android.sdk = 33
-android.ndk = 25b
-android.arch = armeabi-v7a
-android.buildtools = 33.0.0
-android.use_aapt2 = True
-ios.codesign.allowed = false
-[buildozer]
-log_level = 2
-warn_on_root = 0
-EOF
-    
     - name: Build APK
       run: |
         # 运行 buildozer 容器，自动回答确认提示
