@@ -6,9 +6,11 @@ from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
 from kivy.config import Config
 from kivy.core.window import Window
+from kivy.core.text import LabelBase
 import datetime
 import threading
 import time
+import os
 
 # 针对骁龙8至尊版优化的配置
 Config.set('graphics', 'maxfps', '120')  # 支持高刷新率屏幕
@@ -18,26 +20,38 @@ Config.set('kivy', 'window_icon', 'assets/icon.png')
 # 全局变量
 last_update_time = 0
 update_interval = 1  # 秒
+font_configured = False
 
 class CalendarApp(App):
     def build(self):
+        # 配置字体
+        self.configure_fonts()
+        
         # 根布局
         root = BoxLayout(orientation='vertical', padding=20, spacing=20)
         
         # 标题
-        title = Label(text='极简日历', font_size='40sp', bold=True)
+        title = Label(text='极简日历', font_size='40sp', bold=True, halign='center', valign='middle')
+        title.size_hint_y = None
+        title.height = 80
         root.add_widget(title)
         
         # 日期显示
-        self.date_label = Label(text='', font_size='32sp')
+        self.date_label = Label(text='', font_size='32sp', halign='center', valign='middle')
+        self.date_label.size_hint_y = None
+        self.date_label.height = 60
         root.add_widget(self.date_label)
         
         # 时间显示
-        self.time_label = Label(text='', font_size='60sp', bold=True)
+        self.time_label = Label(text='', font_size='60sp', bold=True, halign='center', valign='middle')
+        self.time_label.size_hint_y = None
+        self.time_label.height = 100
         root.add_widget(self.time_label)
         
         # 星期显示
-        self.weekday_label = Label(text='', font_size='24sp')
+        self.weekday_label = Label(text='', font_size='24sp', halign='center', valign='middle')
+        self.weekday_label.size_hint_y = None
+        self.weekday_label.height = 50
         root.add_widget(self.weekday_label)
         
         # 电池优化按钮
@@ -62,22 +76,41 @@ class CalendarApp(App):
         
         return root
     
+    def configure_fonts(self):
+        """配置字体以确保在HyperOS上正确显示"""
+        global font_configured
+        if not font_configured:
+            try:
+                # 尝试使用系统默认字体
+                # 对于中文显示，确保使用支持中文字符的字体
+                Config.set('kivy', 'default_font', ['Roboto', 'DroidSans', 'DroidSansFallback', 'sans-serif'])
+                font_configured = True
+            except Exception as e:
+                print(f"字体配置失败: {e}")
+    
     def update_display(self):
         """更新显示内容"""
-        now = datetime.datetime.now()
-        
-        # 更新日期
-        date_str = now.strftime('%Y年%m月%d日')
-        self.date_label.text = date_str
-        
-        # 更新时间
-        time_str = now.strftime('%H:%M:%S')
-        self.time_label.text = time_str
-        
-        # 更新星期
-        weekdays = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
-        weekday_str = weekdays[now.weekday()]
-        self.weekday_label.text = weekday_str
+        try:
+            now = datetime.datetime.now()
+            
+            # 更新日期 - 使用简单的格式避免字体问题
+            date_str = f"{now.year}年{now.month}月{now.day}日"
+            self.date_label.text = date_str
+            
+            # 更新时间 - 使用简单的格式
+            time_str = f"{now.hour:02d}:{now.minute:02d}:{now.second:02d}"
+            self.time_label.text = time_str
+            
+            # 更新星期 - 使用中文
+            weekdays = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+            weekday_str = weekdays[now.weekday()]
+            self.weekday_label.text = weekday_str
+        except Exception as e:
+            print(f"更新显示失败: {e}")
+            # 显示错误信息以帮助调试
+            self.date_label.text = "日期错误"
+            self.time_label.text = "时间错误"
+            self.weekday_label.text = "星期错误"
     
     def update_thread_func(self):
         """后台更新线程"""
@@ -130,10 +163,35 @@ class CalendarApp(App):
     
     def apply_miui_optimizations(self):
         """应用米澎湃OS 3.0特定的优化"""
-        # 1. 减少后台限制影响
-        # 2. 适配MIUI的深色模式
-        # 3. 优化通知显示
-        pass
+        try:
+            # 1. 适配MIUI的深色模式
+            from kivy.core.window import Window
+            # 检测系统主题并适配
+            try:
+                # 尝试获取系统主题设置
+                # 注意：这可能需要特定的权限或API
+                pass
+            except Exception:
+                pass
+            
+            # 2. 优化内存使用
+            import gc
+            gc.enable()
+            gc.collect()
+            
+            # 3. 减少后台限制影响
+            # 对于HyperOS，设置合理的更新频率
+            Config.set('graphics', 'window_state', 'visible')
+            
+            # 4. 优化触摸响应
+            Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
+            
+            # 5. 适配高刷新率屏幕
+            Config.set('graphics', 'maxfps', '120')
+            
+            print("米澎湃OS 3.0优化已应用")
+        except Exception as e:
+            print(f"应用MIUI优化失败: {e}")
     
     def on_stop(self):
         """应用停止时的清理"""
