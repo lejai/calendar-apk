@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # 允许写入内容，用于创建发布版本
+      id-token: write   # 允许使用OIDC令牌，用于创建发布版本
     steps:
     - uses: actions/checkout@v3
     
