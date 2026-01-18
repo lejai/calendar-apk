@@ -5,5 +5,8 @@ class CalendarApp(App):
     def build(self):
         return Label(text='Hello World')
 
-if __name__ == '__main__':
+def run_app():
     CalendarApp().run()
+
+if __name__ == '__main__':
+    run_app()
