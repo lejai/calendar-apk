@@ -13,12 +13,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Make build.sh executable
-      run: chmod +x build.sh
-    
     - name: Build APK
       run: |
-        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "cd /app && ./build.sh | tee build.log"
+        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "cd /app && chmod +x build_with_expect.sh && ./build_with_expect.sh | tee build.log"
     
     - name: List build results
       run: |
