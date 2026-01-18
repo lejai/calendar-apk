@@ -8,18 +8,20 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 1.0.0
 
 # Dependencies
-requirements = python3,kivy,kivymd
-android.api = 33
+requirements = python3,kivy==2.2.1,kivymd==1.1.1,pillow==9.5.0,openssl==3.0.9
+android.api = 34
 android.ndk = 25b
-android.sdk = 33
-android.permissions = INTERNET
-android.archs = armeabi-v7a,arm64-v8a,x86,x86_64
+android.sdk = 34
+android.permissions = INTERNET,ACCESS_NETWORK_STATE
+android.archs = arm64-v8a,armeabi-v7a
 android.use_aapt2 = True
 android.enable_androidx = True
+android.minapi = 28
+android.targetapi = 34
+android.buildtools = 34.0.0
 
 # Appearance
 # android.icon = %(source.dir)s/assets/icon.png
-android.buildtools = 33.0.0
 android.apptheme = @android:style/Theme.Material.Light.NoActionBar
 
 # Android Studio settings
