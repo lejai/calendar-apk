@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 允许写入内容，用于创建发布版本
     steps:
     - uses: actions/checkout@v3
     
