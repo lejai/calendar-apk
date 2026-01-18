@@ -23,11 +23,12 @@ jobs:
         echo "source.include_exts = py,png,jpg,kv,atlas" >> buildozer.spec
         echo "version = 1.0.0" >> buildozer.spec
         echo "requirements = python3,kivy" >> buildozer.spec
-        echo "android.api = 33" >> buildozer.spec
-        echo "android.sdk = 33" >> buildozer.spec
+        echo "android.api = 34" >> buildozer.spec
+        echo "android.sdk = 34" >> buildozer.spec
         echo "android.ndk = 25b" >> buildozer.spec
-        echo "android.arch = armeabi-v7a" >> buildozer.spec
+        echo "android.archs = arm64-v8a" >> buildozer.spec
         echo "android.permissions = INTERNET" >> buildozer.spec
+        echo "android.orientation = sensor" >> buildozer.spec
         echo "[buildozer]" >> buildozer.spec
         echo "log_level = 2" >> buildozer.spec
         echo "warn_on_root = 0" >> buildozer.spec
@@ -59,3 +60,26 @@ jobs:
         name: build-logs
         path: build.log
       if: always()
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v1.0.0-${{ github.run_number }}
+        release_name: Calendar APK v1.0.0-${{ github.run_number }} (64-bit)
+        draft: false
+        prerelease: false
+      if: success()
+
+    - name: Upload APK to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./bin/calendarapk-1.0.0-debug.apk
+        asset_name: calendarapk-1.0.0-${{ github.run_number }}-arm64-v8a.apk
+        asset_content_type: application/vnd.android.package-archive
+      if: success()
