@@ -32,11 +32,13 @@ jobs:
         echo "log_level = 2" >> buildozer.spec
         echo "warn_on_root = 0" >> buildozer.spec
     
-    - name: Build APK with Buildozer Action
-      uses: ArtemSBulgakov/buildozer-action@v1
-      with:
-        command: android debug
-        buildozer_version: stable
+    - name: Build custom Docker image
+      run: |
+        docker build -t custom-buildozer -f Dockerfile .
+    
+    - name: Build APK with custom Docker image
+      run: |
+        docker run --rm -v $(pwd):/app custom-buildozer 2>&1 | tee build.log
     
     - name: List build results
       run: |

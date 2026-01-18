@@ -1,13 +1,19 @@
 FROM kivy/buildozer:latest
 
-# 设置环境变量
-ENV BUILDOZER_ALLOW_ROOT=1
+# Create a non-root user
+RUN useradd -m -s /bin/bash builduser && \
+    chown -R builduser:builduser /home/builduser && \
+    mkdir -p /app && \
+    chown -R builduser:builduser /app
 
-# 创建工作目录
+# Set working directory
 WORKDIR /app
 
-# 复制项目文件
-COPY . .
+# Switch to non-root user
+USER builduser
 
-# 构建 APK
-CMD ["bash", "-c", "buildozer android debug"]
+# Set environment variables
+ENV PATH="/home/builduser/.local/bin:$PATH"
+
+# Command to run buildozer
+CMD ["buildozer", "android", "debug"]
