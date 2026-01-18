@@ -16,8 +16,7 @@ jobs:
     - name: Build APK
       run: |
         # 创建一个简化的 buildozer.spec 文件，专注于构建基本的 APK
-        cat > buildozer.spec << 'EOF'
-[app]
+        echo '[app]
 title = CalendarApp
 package.name = calendarapk
 package.domain = org.calendar
@@ -32,8 +31,7 @@ android.arch = armeabi-v7a
 android.permissions = INTERNET
 [buildozer]
 log_level = 2
-warn_on_root = 0
-EOF
+warn_on_root = 0' > buildozer.spec
 
         # 显示当前目录结构
         ls -la
