@@ -15,20 +15,53 @@ jobs:
     
     - name: Build APK
       run: |
-        # 运行 buildozer 容器，自动回答确认提示
-        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "
-            export BUILDOZER_ALLOW_ROOT=1 && 
-            echo 'y' | buildozer android debug
+        # 创建一个简化的 buildozer.spec 文件，专注于构建基本的 APK
+        cat > buildozer.spec << 'EOF'
+[app]
+title = CalendarApp
+package.name = calendarapk
+package.domain = org.calendar
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas
+version = 1.0.0
+requirements = python3,kivy
+android.api = 33
+android.sdk = 33
+android.ndk = 25b
+android.arch = armeabi-v7a
+android.permissions = INTERNET
+[buildozer]
+log_level = 2
+warn_on_root = 0
+EOF
+
+        # 显示当前目录结构
+        ls -la
+        
+        # 使用 Docker 运行 buildozer 容器
+        docker run --rm -v $(pwd):/app --env BUILDOZER_ALLOW_ROOT=1 kivy/buildozer:latest bash -c "
+            echo 'Starting build process...' &&
+            ls -la &&
+            buildozer android debug 2>&1 | tee build.log &&
+            echo 'Build process completed'
         "
     
     - name: List build results
       run: |
         ls -la
         ls -la bin/ || true
+        cat build.log || true
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: apk
         path: bin/*.apk
+      if: always()
+    
+    - name: Upload build logs
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs
+        path: build.log
       if: always()
