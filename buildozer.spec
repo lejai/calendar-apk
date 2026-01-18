@@ -19,6 +19,8 @@ android.enable_androidx = True
 android.minapi = 28
 android.targetapi = 34
 android.buildtools = 34.0.0
+android.allow_backup = True
+android.orientation = sensor
 
 # Appearance
 # android.icon = %(source.dir)s/assets/icon.png

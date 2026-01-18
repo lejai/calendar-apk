@@ -158,8 +158,35 @@ class CalendarApp(App):
         # 调整窗口大小
         Window.size = (400, 600)
         
+        # 允许屏幕旋转
+        Window.allow_screensaver = False
+        Window.fullscreen = 'auto'
+        
+        # 绑定屏幕尺寸变化事件
+        Window.bind(on_resize=self.on_window_resize)
+        
         # 针对米澎湃OS 3.0的优化
         self.apply_miui_optimizations()
+    
+    def on_window_resize(self, window, width, height):
+        """屏幕尺寸变化时的处理"""
+        # 根据屏幕方向调整布局
+        if width > height:
+            # 横屏模式
+            self.adjust_for_landscape()
+        else:
+            # 竖屏模式
+            self.adjust_for_portrait()
+    
+    def adjust_for_landscape(self):
+        """调整为横屏模式"""
+        print("切换到横屏模式")
+        # 可以在这里调整横屏特定的布局
+        
+    def adjust_for_portrait(self):
+        """调整为竖屏模式"""
+        print("切换到竖屏模式")
+        # 可以在这里调整竖屏特定的布局
     
     def apply_miui_optimizations(self):
         """应用米澎湃OS 3.0特定的优化"""
