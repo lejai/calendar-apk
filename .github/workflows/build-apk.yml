@@ -15,7 +15,7 @@ jobs:
     
     - name: Build APK
       run: |
-        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "cd /app && chmod +x build_with_advanced_expect.sh && ./build_with_advanced_expect.sh"
+        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "cd /app && chmod +x final_patch.sh && ./final_patch.sh 2>&1 | tee build.log"
     
     - name: List build results
       run: |
