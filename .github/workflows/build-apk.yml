@@ -15,7 +15,7 @@ jobs:
     
     - name: Build APK
       run: |
-        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "cd /app && chmod +x patch_and_build.sh && ./patch_and_build.sh | tee build.log"
+        docker run --rm -v $(pwd):/app kivy/buildozer:latest bash -c "cd /app && chmod +x build_with_yes.sh && ./build_with_yes.sh | tee build.log"
     
     - name: List build results
       run: |
