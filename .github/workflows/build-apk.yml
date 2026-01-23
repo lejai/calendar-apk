@@ -1,10 +1,6 @@
 name: Build Android APK
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
   workflow_dispatch:
 
 jobs:
@@ -14,92 +10,36 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: List files
-      run: |
-        ls -la
-    
     - name: Install dependencies
       run: |
         # 更新包列表
         sudo apt-get update -y
         
         # 安装必要的系统依赖
-        sudo apt-get install -y --no-install-recommends \
-            python3.9 \
+        sudo apt-get install -y \
             python3-pip \
-            python3.9-dev \
+            python3-dev \
             build-essential \
             git \
             wget \
             curl \
             unzip \
             openjdk-11-jdk \
-            ant \
-            libssl-dev \
-            libffi-dev \
-            libxml2-dev \
-            libxslt1-dev \
-            zlib1g-dev \
-            libncurses5-dev \
-            libncursesw5-dev \
-            libreadline6-dev \
-            libdb5.3-dev \
-            libgdbm-dev \
-            libsqlite3-dev \
-            libbz2-dev \
-            libexpat1-dev \
-            liblzma-dev \
-            tk-dev
-        
-        # 创建 Python 3.9 的符号链接
-        sudo ln -sf /usr/bin/python3.9 /usr/bin/python
-        sudo ln -sf /usr/bin/pip3 /usr/bin/pip
+            ant
         
         # 更新 pip
-        pip install --no-cache-dir --upgrade pip
+        pip3 install --upgrade pip
         
         # 安装 Python 依赖
-        pip install --no-cache-dir cython buildozer
-        
-        # 显示版本信息
-        python --version
-        pip --version
-        cython --version
-        buildozer --version
-        java -version
+        pip3 install cython buildozer
     
     - name: Build APK
       run: |
-        # 切换到工作目录
-        cd $GITHUB_WORKSPACE
-        
-        # 显示环境信息
-        echo "Current directory: $(pwd)"
-        echo "PATH: $PATH"
-        
-        # 设置 JAVA_HOME
-        export JAVA_HOME=$(update-alternatives --query java | grep -E '^Link:' | cut -d' ' -f2 | sed 's,/bin/java,,')
-        echo "JAVA_HOME: $JAVA_HOME"
-        export PATH=$JAVA_HOME/bin:$PATH
-        
         # 自动接受 Android SDK 许可证并构建 APK
-        yes | buildozer android debug 2>&1 | tee build.log
-    
-    - name: List build results
-      run: |
-        ls -la
-        ls -la bin/ || true
-        ls -la .buildozer/ || true
+        yes | buildozer android debug
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: apk
         path: bin/*
-    
-    - name: Upload build log
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-log
-        path: build.log
