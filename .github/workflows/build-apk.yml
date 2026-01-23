@@ -19,35 +19,16 @@ jobs:
     
     - name: Build APK
       run: |
-        # 创建一个 Docker 容器，以 root 用户身份安装依赖
+        # 创建一个 Docker 容器，使用官方的 Buildozer 镜像
         docker run --rm -v "${{ github.workspace }}:/app" \
-        -e HOME=/tmp \
-        python:3.9 \
+        -e HOME=/app \
+        kivy/buildozer:stable \
         bash -c "
-          # 安装依赖
-          apt-get update && apt-get install -y --no-install-recommends \
-              build-essential \
-              git \
-              wget \
-              curl \
-              unzip \
-              openjdk-11-jdk \
-              ant \
-              libssl-dev \
-              libffi-dev \
-              libxml2-dev \
-              libxslt1-dev \
-              zlib1g-dev \
-              && rm -rf /var/lib/apt/lists/*
-          
-          # 安装 Cython 和 Buildozer
-          pip install cython buildozer
-          
           # 切换到工作目录
           cd /app
           
           # 构建 APK
-          buildozer --no-warn-on-root android debug
+          buildozer android debug
         "
     
     - name: List build results
