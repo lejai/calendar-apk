@@ -44,13 +44,7 @@ EOF
         # 使用 Docker 运行构建
         docker run --rm -v "${{ github.workspace }}:/app" \
         kivy/buildozer:latest \
-        bash -c "
-          cd /app && 
-          # 安装必要的依赖
-          pip install --no-cache-dir cython && 
-          # 使用我们的自定义脚本运行构建
-          python buildozer_no_root.py android debug
-        "
+        bash -c "cd /app && pip install --no-cache-dir cython && python buildozer_no_root.py android debug"
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
