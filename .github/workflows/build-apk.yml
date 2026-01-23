@@ -9,7 +9,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    
     steps:
     - uses: actions/checkout@v4
     
@@ -17,63 +18,46 @@ jobs:
       run: |
         ls -la
     
+    - name: Install dependencies
+      run: |
+        # 更新包列表
+        sudo apt-get update
+        
+        # 安装 Python 3.9 和 pip
+        sudo apt-get install -y --no-install-recommends \
+            python3.9 \
+            python3-pip \
+            python3.9-dev \
+            build-essential \
+            git \
+            wget \
+            curl \
+            unzip \
+            openjdk-11-jdk \
+            ant \
+            libssl-dev \
+            libffi-dev \
+            libxml2-dev \
+            libxslt1-dev \
+            zlib1g-dev
+        
+        # 创建 Python 3.9 的符号链接
+        sudo ln -s /usr/bin/python3.9 /usr/bin/python
+        sudo ln -s /usr/bin/pip3 /usr/bin/pip
+        
+        # 更新 pip
+        pip install --no-cache-dir --upgrade pip
+        
+        # 安装 Python 依赖
+        pip install --no-cache-dir cython buildozer
+    
     - name: Build APK
       run: |
-        # 创建一个 Docker 容器，使用最新的 Kivy Buildozer 镜像
-        docker run --rm -v "${{ github.workspace }}:/app" \
-        kivy/buildozer:latest \
-        bash -c "
-          # 切换到工作目录
-          cd /app
-          
-          # 创建一个修改后的 Buildozer 脚本，跳过 root 用户检查
-          cat > /app/buildozer_no_root.py << 'EOF'
-#!/usr/bin/env python3
-
-import sys
-import os
-
-# 添加原始 Buildozer 模块的路径
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from buildozer import Buildozer
-from buildozer.scripts.client import main as original_main
-
-# 保存原始的 run_command 方法
-original_run_command = Buildozer.run_command
-
-# 创建一个修改后的 run_command 方法，跳过 root 用户检查
-def modified_run_command(self, args):
-    # 保存原始的 check_root 方法
-    original_check_root = self.check_root
-    
-    # 替换 check_root 方法为一个空方法
-    self.check_root = lambda: None
-    
-    try:
-        # 调用原始的 run_command 方法
-        return original_run_command(self, args)
-    finally:
-        # 恢复原始的 check_root 方法
-        self.check_root = original_check_root
-
-# 替换 Buildozer 类的 run_command 方法
-Buildozer.run_command = modified_run_command
-
-# 运行原始的 main 函数
-if __name__ == '__main__':
-    original_main()
-EOF
-          
-          # 给脚本添加执行权限
-          chmod +x /app/buildozer_no_root.py
-          
-          # 自动接受 Android SDK 许可证
-          yes | python /app/buildozer_no_root.py android update
-          
-          # 构建 APK
-          yes | python /app/buildozer_no_root.py android debug
-        "
+        # 切换到工作目录
+        cd $GITHUB_WORKSPACE
+        
+        # 自动接受 Android SDK 许可证并构建 APK
+        yes | buildozer android debug
     
     - name: List build results
       run: |
