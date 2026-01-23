@@ -40,8 +40,8 @@ jobs:
               zlib1g-dev \
               && rm -rf /var/lib/apt/lists/*
           
-          # 安装 Buildozer
-          pip install --no-cache-dir buildozer
+          # 安装 Buildozer 和 Cython
+          pip install --no-cache-dir cython buildozer
           
           # 切换到工作目录
           cd /app
