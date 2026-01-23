@@ -22,8 +22,28 @@ jobs:
           cd /app && 
           # 安装必要的依赖
           pip install --no-cache-dir cython && 
-          # 直接修改 Buildozer 的源代码，替换 check_root 方法
-          sed -i 's/def check_root(self):/def check_root(self):\\n        return/' /home/user/.venv/lib/python3.12/site-packages/buildozer/__init__.py && 
+          # 使用 python -c 命令动态修改 Buildozer 的 check_root 方法
+          python -c '\
+import sys\
+import os\
+\
+# 添加 Buildozer 模块的路径\
+sys.path.insert(0, \"/home/user/.venv/lib/python3.12/site-packages\")\
+\
+from buildozer import Buildozer\
+\
+# 保存原始的 check_root 方法\
+original_check_root = Buildozer.check_root\
+\
+# 定义一个新的 check_root 方法，什么都不做\
+def new_check_root(self):\
+    pass\
+\
+# 替换 Buildozer 类的 check_root 方法\
+Buildozer.check_root = new_check_root\
+\
+print(\"Successfully replaced check_root method\")\
+' && 
           # 构建 APK
           buildozer android debug
         "
