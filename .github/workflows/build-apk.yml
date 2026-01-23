@@ -46,8 +46,8 @@ jobs:
           # 切换到工作目录
           cd /app
           
-          # 构建 APK，使用 --no-warn-on-root 参数禁用 root 用户警告
-          buildozer --no-warn-on-root android debug
+          # 构建 APK，使用 echo y 自动响应 root 用户警告
+          echo y | buildozer android debug
         "
     
     - name: List build results
