@@ -22,18 +22,44 @@ jobs:
         # 切换到工作目录
         cd /app
         
-        # 直接修改 Buildozer 源代码，跳过 root 用户检查
-        sed -i 's/cont = input("Are you sure you want to continue \[y\/n\]? ")/cont = "y"/' /home/user/.venv/lib/python3.12/site-packages/buildozer/__init__.py
+        # 安装 expect 工具
+        apt-get update && apt-get install -y expect
         
-        # 自动接受 Android SDK 许可证并构建 APK
-        yes | buildozer android debug
+        # 创建一个 expect 脚本来自动响应 root 用户提示
+        cat > build_with_expect.exp << 'EXPECTEOF'
+        #!/usr/bin/expect -f
+        
+        # 设置超时时间
+        set timeout -1
+        
+        # 执行 buildozer 命令
+        spawn buildozer android debug
+        
+        # 等待 root 用户提示
+        expect "Are you sure you want to continue [y/n]? " {
+            # 发送 "y" 并回车
+            send "y\r"
+        }
+        
+        # 等待构建完成
+        expect eof
+        EXPECTEOF
+        
+        # 给脚本添加执行权限
+        chmod +x build_with_expect.exp
+        
+        # 运行 expect 脚本
+        expect build_with_expect.exp
         EOF
         
         # 给脚本添加执行权限
         chmod +x build.sh
         
         # 使用 Docker 运行构建脚本
-        docker run --rm -v "${{ github.workspace }}:/app" kivy/buildozer:latest /app/build.sh
+        docker run --rm -v "${{ github.workspace }}:/app" \
+        --privileged \
+        kivy/buildozer:latest \
+        bash /app/build.sh
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
