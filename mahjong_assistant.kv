@@ -1,0 +1,116 @@
+# 导入自定义组件
+#:import LineGrid main.LineGrid
+#:import Image kivy.uix.image.Image
+#:import Button kivy.uix.button.Button
+#:import BoxLayout kivy.uix.boxlayout.BoxLayout
+#:import Label kivy.uix.label.Label
+#:import ScreenManager kivy.uix.screenmanager.ScreenManager
+#:import Screen kivy.uix.screenmanager.Screen
+
+# 屏幕管理器
+<MahjongAssistantScreenManager>:
+    MainScreen:
+        name: 'main'
+    ResultScreen:
+        name: 'result'
+
+# 主屏幕（相机预览+操作按钮）
+<MainScreen>:
+    camera_layout: camera_layout  # 绑定布局到Python属性
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+        
+        # 标题栏
+        Label:
+            text: '卡五星麻将助手'
+            font_size: '20sp'
+            size_hint_y: 0.1
+            color: (1, 1, 1, 1)
+            halign: 'center'
+        
+        # 相机预览区域
+        BoxLayout:
+            id: camera_layout
+            size_hint_y: 0.8
+            canvas.before:
+                Color:
+                    rgba: (0.1, 0.1, 0.1, 1)
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+        
+        # 底部信息栏
+        BoxLayout:
+            size_hint_y: 0.1
+            Label:
+                text: '请对准麻将牌拍照识别'
+                font_size: '14sp'
+                color: (1, 1, 1, 1)
+                halign: 'center'
+
+# 结果屏幕（识别结果+推荐出牌）
+<ResultScreen>:
+    result_layout: result_layout  # 绑定结果布局
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+        
+        # 标题栏
+        Label:
+            text: '识别结果'
+            font_size: '20sp'
+            size_hint_y: 0.1
+            color: (1, 1, 1, 1)
+            halign: 'center'
+        
+        # 结果展示区域
+        BoxLayout:
+            id: result_layout
+            size_hint_y: 0.7
+            orientation: 'vertical'
+            padding: 10
+            spacing: 10
+            canvas.before:
+                Color:
+                    rgba: (0.15, 0.15, 0.15, 1)
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+        
+        # 操作按钮栏
+        BoxLayout:
+            size_hint_y: 0.2
+            spacing: 10
+            Button:
+                text: '返回拍照'
+                font_size: '16sp'
+                size_hint_x: 0.5
+                background_color: (0.5, 0.8, 1, 1)
+                on_press: root.go_back()
+            Button:
+                text: '重新识别'
+                font_size: '16sp'
+                size_hint_x: 0.5
+                background_color: (1, 0.8, 0.5, 1)
+                on_press: root.re_identify()
+
+# 自定义网格线组件（可选，用于麻将牌定位）
+<LineGrid@Widget>:
+    canvas:
+        Color:
+            rgba: (0.5, 0.5, 0.5, 0.5)
+        Line:
+            points: self.x + self.width/3, self.y, self.x + self.width/3, self.y + self.height
+            width: 1
+        Line:
+            points: self.x + 2*self.width/3, self.y, self.x + 2*self.width/3, self.y + self.height
+            width: 1
+        Line:
+            points: self.x, self.y + self.height/3, self.x + self.width, self.y + self.height/3
+            width: 1
+        Line:
+            points: self.x, self.y + 2*self.height/3, self.x + self.width, self.y + 2*self.height/3
+            width: 1

@@ -1,0 +1,94 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 允许写入内容，用于创建发布版本
+      id-token: write   # 允许使用OIDC令牌，用于创建发布版本
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Create buildozer.spec
+      run: |
+        # 使用项目中已有的buildozer.spec文件
+        ls -la
+    
+    - name: Build custom Docker image
+      run: |
+        docker build -t buildozer-custom -f- . << 'EOF'
+        FROM python:3.9
+        
+        RUN apt-get update && apt-get install -y --no-install-recommends \
+            build-essential \
+            git \
+            wget \
+            curl \
+            unzip \
+            openjdk-11-jdk \
+            ant \
+            libssl-dev \
+            libffi-dev \
+            libxml2-dev \
+            libxslt1-dev \
+            zlib1g-dev \
+            && rm -rf /var/lib/apt/lists/*
+        
+        # 安装Buildozer
+        RUN pip install --no-cache-dir buildozer
+        
+        # 设置工作目录
+        WORKDIR /app
+        EOF
+    
+    - name: Build APK with custom Docker image
+      run: |
+        docker run --rm -v "${{ github.workspace }}:/app" buildozer-custom \
+        bash -c "buildozer android debug"
+    
+    - name: List build results
+      run: |
+        ls -la
+        ls -la bin/
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: apk
+        path: bin/*
+    
+    - name: Upload build logs
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-logs
+        path: ./.buildozer/android/platform/build-arm64-v8a_armeabi-v7a/logs
+    
+    - name: Create GitHub Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: actions/create-release@v1
+      id: create_release
+      with:
+        tag_name: v${{ github.run_id }}
+        release_name: Release v${{ github.run_id }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload APK to Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: bin/*.apk
+        asset_name: mahjong_assistant_${{ github.run_id }}.apk
+        asset_content_type: application/vnd.android.package-archive
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
