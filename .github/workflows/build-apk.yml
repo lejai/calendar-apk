@@ -67,6 +67,9 @@ jobs:
           # 切换到工作目录
           cd /app
           
+          # 自动接受 Android SDK 许可证
+          yes | buildozer android update
+          
           # 构建 APK，使用 echo y 自动响应 root 用户警告
           echo y | buildozer android debug
         "
