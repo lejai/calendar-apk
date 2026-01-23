@@ -19,8 +19,8 @@ jobs:
     
     - name: Build APK
       run: |
-        # 创建一个非 root 用户的 Docker 容器
-        docker run --rm -v "${{ github.workspace }}:/app" --user $(id -u):$(id -g) \
+        # 创建一个 Docker 容器，以 root 用户身份安装依赖
+        docker run --rm -v "${{ github.workspace }}:/app" \
         -e HOME=/tmp \
         python:3.9 \
         bash -c "
@@ -40,14 +40,14 @@ jobs:
               zlib1g-dev \
               && rm -rf /var/lib/apt/lists/*
           
-          # 安装 Buildozer 和 Cython
-          pip install --no-cache-dir cython buildozer
+          # 安装 Cython 和 Buildozer
+          pip install cython buildozer
           
           # 切换到工作目录
           cd /app
           
-          # 构建 APK（使用完整路径）
-          /tmp/.local/bin/buildozer android debug
+          # 构建 APK
+          buildozer --no-warn-on-root android debug
         "
     
     - name: List build results
