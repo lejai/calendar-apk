@@ -1,42 +1,39 @@
 name: Build Android APK
 
 on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
-    
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     
-    - name: Install dependencies
-      run: |
-        # 更新包列表
-        sudo apt-get update -y
-        
-        # 安装必要的系统依赖
-        sudo apt-get install -y \
-            python3-pip \
-            python3-dev \
-            build-essential \
-            git \
-            wget \
-            curl \
-            unzip \
-            openjdk-11-jdk \
-            ant
-        
-        # 更新 pip
-        pip3 install --upgrade pip
-        
-        # 安装 Python 依赖
-        pip3 install cython buildozer
-    
     - name: Build APK
       run: |
+        # 创建一个脚本文件来处理构建过程
+        cat > build.sh << 'EOF'
+        #!/bin/bash
+        
+        # 切换到工作目录
+        cd /app
+        
+        # 直接修改 Buildozer 源代码，跳过 root 用户检查
+        sed -i 's/cont = input("Are you sure you want to continue \[y\/n\]? ")/cont = "y"/' /home/user/.venv/lib/python3.12/site-packages/buildozer/__init__.py
+        
         # 自动接受 Android SDK 许可证并构建 APK
         yes | buildozer android debug
+        EOF
+        
+        # 给脚本添加执行权限
+        chmod +x build.sh
+        
+        # 使用 Docker 运行构建脚本
+        docker run --rm -v "${{ github.workspace }}:/app" kivy/buildozer:latest /app/build.sh
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
