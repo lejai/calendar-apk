@@ -18,9 +18,37 @@ jobs:
         ls -la
     
     - name: Build APK
-      uses: docker://kivy/buildozer:latest
-      with:
-        args: buildozer --no-warn-on-root android debug
+      run: |
+        # 创建一个非 root 用户的 Docker 容器
+        docker run --rm -v "${{ github.workspace }}:/app" --user $(id -u):$(id -g) \
+        -e HOME=/tmp \
+        python:3.9 \
+        bash -c "
+          # 安装依赖
+          apt-get update && apt-get install -y --no-install-recommends \
+              build-essential \
+              git \
+              wget \
+              curl \
+              unzip \
+              openjdk-11-jdk \
+              ant \
+              libssl-dev \
+              libffi-dev \
+              libxml2-dev \
+              libxslt1-dev \
+              zlib1g-dev \
+              && rm -rf /var/lib/apt/lists/*
+          
+          # 安装 Buildozer
+          pip install --no-cache-dir buildozer
+          
+          # 切换到工作目录
+          cd /app
+          
+          # 构建 APK
+          buildozer android debug
+        "
     
     - name: List build results
       run: |
