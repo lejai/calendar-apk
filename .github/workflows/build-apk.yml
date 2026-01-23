@@ -15,8 +15,15 @@ jobs:
     
     - name: Build APK
       run: |
-        # 创建一个 Python 脚本来跳过 Buildozer 的 root 用户检查
-        cat > buildozer_no_root.py << 'EOF'
+        # 使用 Docker 运行构建
+        docker run --rm -v "${{ github.workspace }}:/app" \
+        kivy/buildozer:latest \
+        bash -c "
+          cd /app && 
+          # 安装必要的依赖
+          pip install --no-cache-dir cython && 
+          # 创建一个 Python 脚本来跳过 Buildozer 的 root 用户检查
+          cat > buildozer_no_root.py << 'EOF'
 #!/usr/bin/env python3
 
 import sys
@@ -37,14 +44,11 @@ Buildozer.check_root = new_check_root
 if __name__ == '__main__':
     main()
 EOF
-
-        # 给脚本添加执行权限
-        chmod +x buildozer_no_root.py
-
-        # 使用 Docker 运行构建
-        docker run --rm -v "${{ github.workspace }}:/app" \
-        kivy/buildozer:latest \
-        bash -c "cd /app && pip install --no-cache-dir cython && python buildozer_no_root.py android debug"
+          # 给脚本添加执行权限
+          chmod +x buildozer_no_root.py && 
+          # 使用我们的自定义脚本运行构建
+          python buildozer_no_root.py android debug
+        "
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
