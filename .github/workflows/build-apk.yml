@@ -15,44 +15,6 @@ jobs:
     
     - name: Build APK
       run: |
-        # 创建一个 Python 脚本来绕过 Buildozer 的 root 用户检查
-        cat > buildozer_wrapper.py << 'EOF'
-#!/usr/bin/env python3
-
-import sys
-import os
-
-# 添加 Buildozer 模块的路径
-sys.path.insert(0, '/home/user/.venv/lib/python3.12/site-packages')
-
-from buildozer import Buildozer
-
-# 保存原始的 check_root 方法
-original_check_root = Buildozer.check_root
-
-# 定义一个新的 check_root 方法，什么都不做
-def new_check_root(self):
-    print("Skipping root user check...")
-
-# 替换 Buildozer 类的 check_root 方法
-Buildozer.check_root = new_check_root
-
-# 创建 Buildozer 实例并运行命令
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Usage: python buildozer_wrapper.py <command> [<args>]")
-        sys.exit(1)
-    
-    # 创建 Buildozer 实例
-    buildozer = Buildozer()
-    
-    # 运行命令
-    buildozer.run_command(sys.argv[1:])
-EOF
-
-        # 给脚本添加执行权限
-        chmod +x buildozer_wrapper.py
-
         # 使用 Docker 运行构建
         docker run --rm -v "${{ github.workspace }}:/app" \
         kivy/buildozer:latest \
@@ -60,8 +22,10 @@ EOF
           cd /app && 
           # 安装必要的依赖
           pip install --no-cache-dir cython && 
-          # 使用我们的包装脚本运行构建
-          python buildozer_wrapper.py android debug
+          # 直接修改 Buildozer 的源代码，替换 check_root 方法
+          sed -i 's/def check_root(self):/def check_root(self):\\n        return/' /home/user/.venv/lib/python3.12/site-packages/buildozer/__init__.py && 
+          # 构建 APK
+          buildozer android debug
         "
     
     - name: Upload artifacts
