@@ -26,11 +26,11 @@ jobs:
           # 切换到工作目录
           cd /app
           
-          # 自动接受 Android SDK 许可证并响应 root 用户警告
-          echo y | buildozer android update
+          # 自动接受 Android SDK 许可证并响应所有交互式提示
+          yes | buildozer android update
           
-          # 构建 APK，自动响应 root 用户警告
-          echo y | buildozer android debug
+          # 构建 APK，自动响应所有交互式提示
+          yes | buildozer android debug
         "
     
     - name: List build results
