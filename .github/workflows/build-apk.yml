@@ -22,32 +22,8 @@ jobs:
           cd /app && 
           # 安装必要的依赖
           pip install --no-cache-dir cython && 
-          # 创建一个 Python 脚本来跳过 Buildozer 的 root 用户检查
-          cat > buildozer_no_root.py << 'EOF'
-#!/usr/bin/env python3
-
-import sys
-from buildozer import Buildozer
-from buildozer.scripts.client import main
-
-# 保存原始的 check_root 方法
-original_check_root = Buildozer.check_root
-
-# 定义一个新的 check_root 方法，什么都不做
-def new_check_root(self):
-    pass
-
-# 替换 Buildozer 类的 check_root 方法
-Buildozer.check_root = new_check_root
-
-# 运行原始的 main 函数
-if __name__ == '__main__':
-    main()
-EOF
-          # 给脚本添加执行权限
-          chmod +x buildozer_no_root.py && 
-          # 使用我们的自定义脚本运行构建
-          python buildozer_no_root.py android debug
+          # 自动接受所有提示并构建 APK
+          yes | buildozer android debug
         "
     
     - name: Upload artifacts
