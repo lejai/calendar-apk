@@ -46,8 +46,8 @@ jobs:
           # 切换到工作目录
           cd /app
           
-          # 构建 APK
-          buildozer android debug
+          # 构建 APK（使用完整路径）
+          /tmp/.local/bin/buildozer android debug
         "
     
     - name: List build results
