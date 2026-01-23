@@ -19,59 +19,18 @@ jobs:
     
     - name: Build APK
       run: |
-        # 创建一个 Docker 容器，使用 Ubuntu 20.04 镜像并安装所有必要的依赖
+        # 创建一个 Docker 容器，使用最新的 Kivy Buildozer 镜像
         docker run --rm -v "${{ github.workspace }}:/app" \
-        -e HOME=/app \
-        ubuntu:20.04 \
+        kivy/buildozer:latest \
         bash -c "
-          # 更新包列表
-          apt-get update
-          
-          # 安装 Python 3.9 和 pip
-          apt-get install -y --no-install-recommends \
-              python3.9 \
-              python3-pip \
-              python3.9-dev \
-              && rm -rf /var/lib/apt/lists/*
-          
-          # 创建 Python 3.9 的符号链接
-          ln -s /usr/bin/python3.9 /usr/bin/python
-          ln -s /usr/bin/pip3 /usr/bin/pip
-          
-          # 更新 pip
-          pip install --no-cache-dir --upgrade pip
-          
-          # 再次更新包列表，安装其他依赖
-          apt-get update && apt-get install -y --no-install-recommends \
-              build-essential \
-              git \
-              wget \
-              curl \
-              unzip \
-              openjdk-11-jdk \
-              ant \
-              libssl-dev \
-              libffi-dev \
-              libxml2-dev \
-              libxslt1-dev \
-              zlib1g-dev \
-              && rm -rf /var/lib/apt/lists/*
-          
-          # 检查 Java 安装
-          java -version
-          javac -version
-          
-          # 安装 Python 依赖
-          pip install --no-cache-dir cython buildozer
-          
           # 切换到工作目录
           cd /app
           
           # 自动接受 Android SDK 许可证
           yes | buildozer android update
           
-          # 构建 APK，使用 echo y 自动响应 root 用户警告
-          echo y | buildozer android debug
+          # 构建 APK
+          buildozer android debug
         "
     
     - name: List build results
