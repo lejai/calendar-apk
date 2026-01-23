@@ -20,7 +20,7 @@ jobs:
     - name: Build APK
       uses: docker://kivy/buildozer:latest
       with:
-        args: buildozer android debug
+        args: buildozer --no-warn-on-root android debug
     
     - name: List build results
       run: |
