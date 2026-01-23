@@ -15,51 +15,42 @@ jobs:
     
     - name: Build APK
       run: |
-        # 创建一个脚本文件来处理构建过程
-        cat > build.sh << 'EOF'
-        #!/bin/bash
-        
-        # 切换到工作目录
-        cd /app
-        
-        # 安装 expect 工具
-        apt-get update && apt-get install -y expect
-        
-        # 创建一个 expect 脚本来自动响应 root 用户提示
-        cat > build_with_expect.exp << 'EXPECTEOF'
-        #!/usr/bin/expect -f
-        
-        # 设置超时时间
-        set timeout -1
-        
-        # 执行 buildozer 命令
-        spawn buildozer android debug
-        
-        # 等待 root 用户提示
-        expect "Are you sure you want to continue [y/n]? " {
-            # 发送 "y" 并回车
-            send "y\r"
-        }
-        
-        # 等待构建完成
-        expect eof
-        EXPECTEOF
-        
+        # 创建一个 Python 脚本来跳过 Buildozer 的 root 用户检查
+        cat > buildozer_no_root.py << 'EOF'
+#!/usr/bin/env python3
+
+import sys
+from buildozer import Buildozer
+from buildozer.scripts.client import main
+
+# 保存原始的 check_root 方法
+original_check_root = Buildozer.check_root
+
+# 定义一个新的 check_root 方法，什么都不做
+def new_check_root(self):
+    pass
+
+# 替换 Buildozer 类的 check_root 方法
+Buildozer.check_root = new_check_root
+
+# 运行原始的 main 函数
+if __name__ == '__main__':
+    main()
+EOF
+
         # 给脚本添加执行权限
-        chmod +x build_with_expect.exp
-        
-        # 运行 expect 脚本
-        expect build_with_expect.exp
-        EOF
-        
-        # 给脚本添加执行权限
-        chmod +x build.sh
-        
-        # 使用 Docker 运行构建脚本
+        chmod +x buildozer_no_root.py
+
+        # 使用 Docker 运行构建
         docker run --rm -v "${{ github.workspace }}:/app" \
-        --privileged \
         kivy/buildozer:latest \
-        bash /app/build.sh
+        bash -c "
+          cd /app && 
+          # 安装必要的依赖
+          pip install --no-cache-dir cython && 
+          # 使用我们的自定义脚本运行构建
+          python buildozer_no_root.py android debug
+        "
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
